@@ -1,6 +1,7 @@
 <?php
 include_once("./bdd/env.php");
 include_once("./bdd/BddUtils.php");
+include_once("./bdd/LigneUtils.php");
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
 $lig_selectionnee = null;

@@ -1,6 +1,7 @@
 <?php 
 include_once("./bdd/env.php"); 
 include_once("./bdd/BddUtils.php"); 
+include_once("./bdd/LigneUtils.php");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
