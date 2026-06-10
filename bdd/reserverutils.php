@@ -4,12 +4,24 @@ require_once __DIR__ . '/BddConnexionUtils.php';
 
 function ListeCommunesLignes($conn) {
     $cur = $conn->query("SELECT n.LIG_NUM,
-                                n.COM_CODE_INSEE_ARRET,
-                                c.COM_NOM
+                                n.NOE_HEURE_PASSAGE,
+                                n.COM_CODE_INSEE_ARRET   AS COM_CODE_INSEE_DEPART,
+                                n.COM_CODE_INSEE_SUIVANT AS COM_CODE_INSEE_ARRIVEE,
+                                dep.COM_NOM AS COM_NOM_DEPART,
+                                arr.COM_NOM AS COM_NOM_ARRIVEE
                          FROM vik_noeud n
-                         LEFT JOIN vik_commune c ON c.COM_CODE_INSEE = n.COM_CODE_INSEE_ARRET
-                         GROUP BY n.LIG_NUM, n.COM_CODE_INSEE_ARRET, c.COM_NOM
-                         ORDER BY n.LIG_NUM, n.COM_CODE_INSEE_ARRET");
+                         LEFT JOIN vik_commune dep ON dep.COM_CODE_INSEE = n.COM_CODE_INSEE_ARRET
+                         LEFT JOIN vik_commune arr ON arr.COM_CODE_INSEE = n.COM_CODE_INSEE_SUIVANT
+                         GROUP BY n.LIG_NUM,
+                                  n.COM_CODE_INSEE_ARRET,
+                                  n.COM_CODE_INSEE_SUIVANT,
+                                  n.NOE_HEURE_PASSAGE,
+                                  dep.COM_NOM,
+                                  arr.COM_NOM
+                         ORDER BY n.LIG_NUM,
+                                  n.NOE_HEURE_PASSAGE,
+                                  n.COM_CODE_INSEE_ARRET,
+                                  n.COM_CODE_INSEE_SUIVANT");
     return $cur->fetchAll(PDO::FETCH_ASSOC);
 }
 

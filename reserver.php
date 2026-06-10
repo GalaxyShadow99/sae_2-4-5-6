@@ -206,34 +206,54 @@ if (!empty($erreurs)) {
         <script>
             const communes = <?= json_encode($communes) ?>;
 
+            function optionsUniques(arrets, codeKey, nomKey) {
+                const dejaVus = new Set();
+
+                return arrets.reduce((liste, arret) => {
+                    const code = (arret[codeKey] || '').trim();
+                    if (!code || dejaVus.has(code)) {
+                        return liste;
+                    }
+
+                    dejaVus.add(code);
+                    liste.push({
+                        code,
+                        label: (arret[nomKey] || code).trim(),
+                    });
+                    return liste;
+                }, []);
+            }
+
             function remplirArrets(selectLigne, selectDepart, selectArrivee, valDepart = '', valArrivee = '') {
                 const ligNum = selectLigne.value.trim();
 
                 selectDepart.innerHTML  = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
                 selectArrivee.innerHTML = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
 
-                const arrets = communes.filter(c => c['LIG_NUM'].trim() === ligNum);
+                const arretsLigne = communes.filter(c => (c['LIG_NUM'] || '').trim() === ligNum);
+                const departs = optionsUniques(arretsLigne, 'COM_CODE_INSEE_DEPART', 'COM_NOM_DEPART');
+                const arrivees = optionsUniques(arretsLigne, 'COM_CODE_INSEE_ARRIVEE', 'COM_NOM_ARRIVEE');
 
-                if (arrets.length === 0) {
+                if (departs.length === 0 && arrivees.length === 0) {
                     selectDepart.innerHTML  = '<option value="" disabled selected>Aucun arrêt trouvé</option>';
                     selectArrivee.innerHTML = '<option value="" disabled selected>Aucun arrêt trouvé</option>';
                     return;
                 }
 
-                arrets.forEach(c => {
-                    const code = c['COM_CODE_INSEE_ARRET'];
-                    const ville = c['COM_NOM'] || code;
-                    const libelle = ville;
+                departs.forEach(({ code, label }) => {
+                    const option = document.createElement('option');
+                    option.value = code;
+                    option.textContent = label;
+                    if (code === valDepart) option.selected = true;
+                    selectDepart.appendChild(option);
+                });
 
-                    const optD = document.createElement('option');
-                    optD.value = code; optD.textContent = libelle;
-                    if (code === valDepart) optD.selected = true;
-                    selectDepart.appendChild(optD);
-
-                    const optA = document.createElement('option');
-                    optA.value = code; optA.textContent = libelle;
-                    if (code === valArrivee) optA.selected = true;
-                    selectArrivee.appendChild(optA);
+                arrivees.forEach(({ code, label }) => {
+                    const option = document.createElement('option');
+                    option.value = code;
+                    option.textContent = label;
+                    if (code === valArrivee) option.selected = true;
+                    selectArrivee.appendChild(option);
                 });
             }
 
