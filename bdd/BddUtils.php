@@ -127,7 +127,7 @@ function ListeHorairesLigne($conn, $lig_num){
 function ProchainArret($conn,$lig_num){
     $sql ="select noe1.com_code_insee_arret, noe1.noe_heure_passage from vik_noeud noe1
             join vik_noeud noe2 using(lig_num)
-            where noe1.com_code_insee_suivant = noe2.com_code_insee_arret and noe1.com_code_insee_suivant not null and lig_num = :X;";
+            where noe1.com_code_insee_suivant = noe2.com_code_insee_arret and lig_num = :X;";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['X' => $lig_num]);
     return $stmt->fetchColumn();

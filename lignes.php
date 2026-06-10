@@ -5,15 +5,11 @@ include_once("./bdd/LigneUtils.php");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-
 <?php include_once("./includes/head.php"); ?>
-<?php include_once("./bdd/env.php"); ?>
-<?php include_once("./bdd/BddUtils.php"); ?>
-
 <body>
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container mt-5">
+    <main class="container pt-3">
         <div class="row mb-4 text-center">
             <div class="col">
                 <h1 class="display-5 fw-bold text-dark">Réseau Viking Transport</h1>
@@ -86,7 +82,7 @@ include_once("./bdd/LigneUtils.php");
                                     ?>
                                     <tr style="cursor:pointer" onclick="location.href='horaires.php?lig_num=<?= urlencode($numLigne) ?>'" >
                                         <td class="ps-4 py-3">
-                                            <span class="badge bg-dark fs-6 px-3 py-2 font-monospace">
+                                            <span class="badge <?= $badgeColor ?> fs-6 px-3 py-2 font-monospace">
                                                 Ligne <?= htmlspecialchars($numLigne) ?>
                                             </span>
                                         </td>
@@ -123,5 +119,4 @@ include_once("./bdd/LigneUtils.php");
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
 </body>
-
 </html>
