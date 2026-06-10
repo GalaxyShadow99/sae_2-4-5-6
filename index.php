@@ -3,7 +3,7 @@
 
 <?php include_once("./includes/head.php"); ?>
 
-<body class="d-flex flex-column h-100 bg-light text-dark">
+<body>
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container my-5 flex-shrink-0">
@@ -59,6 +59,8 @@
         </div>
 
     </main>
+
+    <!-- Pour avoir accès à la base de données-->
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
