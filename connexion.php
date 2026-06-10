@@ -7,6 +7,8 @@ require_once './bdd/env.php';
 require_once './bdd/BddClientUtils.php';
 //variable en cas d'erreurs
 $message_erreur = "";
+$success = $_SESSION['login_success'] ?? '';
+unset($_SESSION['login_success']);
 // vérification si la page est chargé suite au clic sur le  bouton se connecter
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // connexion a la base de donnée oracle configuré dans env.php
@@ -18,49 +20,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($client) {
             $_SESSION['user_id']     = $client['CLI_NUM'];
             $_SESSION['user_prenom'] = $client['CLI_PRENOM'];
-            // redirection auto de l'ut vers la page d'accueil
-        echo '
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-                <meta charset="UTF-8">
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-            </head>
-            <body>
-
-                <h1 class="text-center"> Bienvenu cher utilisateur </h1>    
-            
-                <div style="
-                    position: fixed;
-                    bottom: 30px;
-                    right: 30px;
-                    background: white;
-                    border-left: 4px solid #198754;
-                    border-radius: 8px;
-                    padding: 14px 20px;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    opacity: 0;
-                    transform: translateX(20px);
-                    transition: all 0.3s ease;
-                    z-index: 9999;
-                " id="toast">
-                    <span style="font-size:1.3rem">✅</span>
-                    <div>
-                        <div style="font-weight:600; font-size:0.9rem;">Connexion réussie</div>
-                        <div style="color:#6c757d; font-size:0.78rem;">Bienvenue ' . htmlspecialchars($client['CLI_PRENOM']) . ' !</div>
-                    </div>
-                </div>
-                <script>
-                    const t = document.getElementById("toast");
-                    setTimeout(() => { t.style.opacity="1"; t.style.transform="translateX(0)"; }, 100);
-                    setTimeout(() => { t.style.opacity="0"; t.style.transform="translateX(20px)"; }, 1800);
-                    setTimeout(() => window.location.href="index.php", 3000);
-                </script>
-            </body>
-            </html>';
+            $_SESSION['login_success'] = "Bienvenue " . $client['CLI_PRENOM'] . " ! Votre connexion a été réussie.";
+            header('Location: connexion.php');
             exit();
         }
         else {
@@ -97,5 +58,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
+
+    <?php if (!empty($success)): ?>
+        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header text-white" style="background: linear-gradient(135deg, #198754, #20c997);">
+                        <h5 class="modal-title fw-bold" id="successModalLabel">Connexion réussie</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <div class="display-4 mb-3">✓</div>
+                        <p class="mb-0 fs-5"><?= htmlspecialchars($success) ?></p>
+                    </div>
+                    <div class="modal-footer justify-content-center border-0 pb-4">
+                        <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Continuer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalElement = document.getElementById('successModal');
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    window.location.href = 'index.php';
+                });
+
+                setTimeout(function () {
+                    modal.hide();
+                }, 2500);
+            });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

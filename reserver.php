@@ -2,7 +2,8 @@
 <html lang="fr">
 
 <?php include_once("./includes/head.php"); ?>
-
+<?php include_once("./bdd/BddLigneUtils.php"); ?>
+<?php include_once("./bdd/LigneUtils.php"); ?>
 <body>
     <?php include_once("./includes/topbar.php"); ?>
 
@@ -16,6 +17,14 @@
         $conn    = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
         $lignes  = ListeLignes($conn);
         $communes = ListeCommunesLignes($conn);
+        $nomsVilles = [];
+
+        foreach ($communes as $commune) {
+            $codeInsee = $commune['COM_CODE_INSEE_ARRET'];
+            if (!isset($nomsVilles[$codeInsee])) {
+                $nomsVilles[$codeInsee] = RecupereVille($conn, $codeInsee) ?: $codeInsee;
+            }
+        }
 
         // --- TRAITEMENT DU FORMULAIRE (POST) ---
         $message     = '';
@@ -152,7 +161,7 @@
                                         <option value="" disabled <?= $sLigne === '' ? 'selected' : '' ?>>-- Choisir une ligne --</option>
                                         <?php foreach ($lignes as $Ligne):
                                             $val   = trim($Ligne['LIG_NUM']);
-                                            $label = 'Ligne ' . $val . '  (' . $Ligne['COM_CODE_INSEE_DEBU'] . ' → ' . $Ligne['COM_CODE_INSEE_TERM'] . ')';
+                                            $label = 'Ligne ' . $val . '  (' . RecupereVille($conn, $Ligne['COM_CODE_INSEE_DEBU']) . ' → ' . RecupereVille($conn, $Ligne['COM_CODE_INSEE_TERM']) . ')';
                                         ?>
                                             <option value="<?= htmlspecialchars($val) ?>"
                                                 <?= ($sLigne === $val) ? 'selected' : '' ?>>
@@ -217,14 +226,15 @@
 
                 arrets.forEach(c => {
                     const code = c['COM_CODE_INSEE_ARRET'];
+                    const ville = <?= json_encode($nomsVilles) ?>[code] || code;
 
                     const optD = document.createElement('option');
-                    optD.value = code; optD.textContent = code;
+                    optD.value = code; optD.textContent = ville;
                     if (code === valDepart) optD.selected = true;
                     selectDepart.appendChild(optD);
 
                     const optA = document.createElement('option');
-                    optA.value = code; optA.textContent = code;
+                    optA.value = code; optA.textContent = ville;
                     if (code === valArrivee) optA.selected = true;
                     selectArrivee.appendChild(optA);
                 });
@@ -306,8 +316,8 @@
 
             const lignesData = <?= json_encode(array_map(fn($l) => [
                 'num'   => trim($l['LIG_NUM']),
-                'debu'  => $l['COM_CODE_INSEE_DEBU'],
-                'term'  => $l['COM_CODE_INSEE_TERM'],
+                'debu'  => RecupereVille($conn, $l['COM_CODE_INSEE_DEBU']) ?: $l['COM_CODE_INSEE_DEBU'],
+                'term'  => RecupereVille($conn, $l['COM_CODE_INSEE_TERM']) ?: $l['COM_CODE_INSEE_TERM'],
             ], $lignes)) ?>;
 
             function buildLigneOptions() {

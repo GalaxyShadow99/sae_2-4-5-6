@@ -2,7 +2,6 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 include_once("./bdd/env.php");
 include_once("./bdd/BddLigneUtils.php");
-include_once("./bdd/LigneUtils.php");
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
 $lig_selectionnee = null;
@@ -84,9 +83,10 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
                 </div>
                 <div class="list-group list-group-flush">
                     <?php foreach ($villes as $v): ?>
+                        <?php $nomVille = RecupereVille($conn, $v['COM_CODE_INSEE']); ?>
                         <a href="horaires.php?lig_num=<?= $lig_selectionnee ?>&ville=<?= $v['COM_CODE_INSEE'] ?>"
                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <?= $v['COM_NOM'] ?>
+                            <?= htmlspecialchars($nomVille ?: $v['COM_NOM']) ?>
                             <span class="text-muted">→</span>
                         </a>
                     <?php endforeach; ?>

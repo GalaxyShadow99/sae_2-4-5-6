@@ -23,6 +23,14 @@ function DepPourVille($conn, $code_insee){
     return $stmt->fetchColumn();
 }
 
+function VerifExiste($conn, $cli_mail, $cli_mdp) {
+    $sql = "select cli_num from vik_client
+            where cli_courriel = :mail and cli_mdp = :mdp";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(["mail" => $cli_mail, "mdp" => $cli_mdp]);
+    return $stmt->fetchColumn();
+}
+
 function AjouteClient($conn, $cli_nom, $cli_prenom, $cli_ville, $cli_tel, $cli_mail, $cli_mdp) {
     try {
         $sql = "insert into vik_client

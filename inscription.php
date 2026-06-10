@@ -43,6 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if (empty($nom) || empty($prenom) || empty($ville) || empty($tel) || empty($mail) || empty($mdp) || empty($mdp2)) $error = "Tous les champs sont obligatoires.";
         else if ($mdp != $mdp2) $error = "Les mots de passe ne correspondent pas.";
+        else if (!empty(VerifExiste($conn, $mail, $mdp))) $error = "Un compte existe déjà avec cette adresse mail.";
         else {
             $res = AjouteClient($conn, $nom, $prenom, $ville, $tel, $mail, $mdp);
 
