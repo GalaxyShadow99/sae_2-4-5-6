@@ -7,13 +7,23 @@
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container mt-4">
-    <!-- contenu de la page ici ! 
-    le site utilise Bootstrap pour son interface afin de ne pas avoir à utiliser du CSS manuel de trop....
-    pensez à aller vous servir la doc donne pleins d'examples et de composants pré faits
-     https://getbootstrap.com/
-     https://getbootstrap.com/docs/5.3/examples/
-    --> 
+    
      <h1 class="text-center"> Site de la SAE 2.456</h1>
+
+     <?php
+        require_once './bdd/env.php';
+        require_once './bdd/BddUtils.php';
+ 
+        define('MOD_BDD', 'ORACLE');
+        $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
+ 
+        // TODO : récupérer les lignes disponibles pour le <select>
+        // $lignes = ListeLignes($conn);
+ 
+        // TODO : traitement du formulaire quand il est soumis
+        // if ($_SERVER['REQUEST_METHOD'] === 'POST') { ... }
+        ?>
+
 
     </main>
 
