@@ -65,17 +65,24 @@
             } else {
                 // Calcul du tarif pour chaque segment (US6)
                 $prixTotal = 0;
-                foreach ($numLignes as $i => $ligne) {
-                    $dep = trim($comDeparts[$i]);
-                    $arr = trim($comArrivees[$i]);
-                    $tarif = GetTarifSegment($conn, trim($ligne), $dep, $arr);
-                    if ($tarif !== false) {
-                        $tarifsCalcules[$i] = $tarif;
-                        $prixTotal += $tarif['PRIX'];
-                    } else {
-                        $tarifsCalcules[$i] = null;
-                    }
-                }
+foreach ($numLignes as $i => $ligne) {
+    $dep = trim($comDeparts[$i]);
+    $arr = trim($comArrivees[$i]);
+    $tarif = GetTarifSegment($conn, trim($ligne), $dep, $arr);
+    if ($tarif !== false) {
+        $tarifsCalcules[$i] = $tarif;
+        $prixTotal += $tarif['PRIX'];
+    } else {
+        $tarifsCalcules[$i] = null;
+        $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun tarif trouvé pour ce trajet.';
+    }
+}
+            }
+
+if (!empty($erreurs)) {
+    $message     = implode('<br>', array_map('htmlspecialchars', $erreurs));
+    $messageType = 'danger';
+} else {
 
                 // Insertion de chaque segment dans une seule transaction (US4)
                 try {
