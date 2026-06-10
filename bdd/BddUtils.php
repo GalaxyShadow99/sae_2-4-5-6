@@ -124,19 +124,20 @@ function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrive
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-//
-// fonctions en cours de dev, ne pas encore utiliser
-//
 function ListeHorairesLigne($conn, $lig_num){
     $cur = $conn->query("
                         SELECT COM_CODE_INSEE_ARRET, TO_CHAR(NOE_HEURE_PASSAGE, 'HH24:MI') AS NOE_HEURE_PASSAGE 
                          FROM VIK_NOEUD 
                          WHERE LIG_NUM = '$lig_num'
-                         order by noe_heure_passage
+                         order by COM_CODE_INSEE_ARRET
     ");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
 }
+
+//
+// fonctions en cours de dev, ne pas encore utiliser
+//
 
 function userAllowed($conn,$adresseMailClient , $userPassword){
 
