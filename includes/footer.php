@@ -5,7 +5,7 @@
 
             <div class="col-lg-4 col-md-12">
                 <h4 class="text-white fw-bold text-uppercase tracking-wider mb-3">
-                    Viking Transport
+                    <span style="color: rgb(255, 220, 0);">Viking</span> Transport
                 </h4>
                 <p class="text-white-50 mb-2 small">
                     SAÉ S2.04-05-06 — BUT Informatique
