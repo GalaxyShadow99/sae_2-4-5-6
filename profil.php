@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr" class="h-100">
 
-<?php include_once("./includes/head.php"); ?>
+<?php 
+if (session_status() === PHP_SESSION_NONE) session_start();
+include_once("./includes/head.php"); ?>
 
 <body class="d-flex flex-column h-100 bg-light text-dark">
     <?php include_once("./includes/topbar.php"); ?>

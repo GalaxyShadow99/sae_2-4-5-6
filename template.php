@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
 
-<?php include_once("./includes/head.php"); ?>
+<?php 
+if (session_status() === PHP_SESSION_NONE) session_start();
+include_once("./includes/head.php"); 
+?>
 
 <body>
     <?php include_once("./includes/topbar.php"); ?>
