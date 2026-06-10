@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/BddConnexionUtils.php';
-
 function Today($conn) {
     return $conn->query("select sysdate from dual");
 }
