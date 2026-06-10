@@ -1,4 +1,8 @@
 ﻿<?php
+
+// LA BDD a été modifiée pour ajouter le champ mot de passe aux utilisateur pour la fonction de connexion !! 
+// merci donc de faire des select * régulier si vous avez des doutes sur la strcture de la base qui n'est pas à 1000% exacte par rapport au MLD
+
 // BDDUtils.php
 function OuvrirConnexionPDO($db, $db_username, $db_password) {
     try {
@@ -15,6 +19,16 @@ function majDonneesPDO($conn, $sql) {
     return $conn->exec($sql);
 }
 
+function VillesParLigne($conn, $num_ligne) {
+    $sql = "SELECT DISTINCT c.com_code_insee, c.com_nom 
+            FROM vik_commune c
+            JOIN vik_noeud n ON c.com_code_insee = n.com_code_insee
+            WHERE n.lig_num = :ligne
+            ORDER BY n.noe_num ASC"; 
+    $stmt->execute(['ligne' => $num_ligne]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 function preparerRequetePDO($conn, $sql) {
     return $conn->prepare($sql);
 }
@@ -28,7 +42,7 @@ function LireDonneesPDO3($conn, $sql, &$tab) {
 
 // la liste de toute les lignes de transports
 function ListeLignes($conn){
-    $cur = $conn->query("select * from sae.vik_ligne");
+    $cur = $conn->query("select * from vik_ligne");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
 }
@@ -36,7 +50,7 @@ function ListeLignes($conn){
 // récupère toutes les réservations associées à un cli_num
 function HistoriqueReservationsClient($conn, $cli_num) {
  
-    $sql = "SELECT * FROM sae.vik_reservation JOIN sae.vik_client USING (cli_num) WHERE cli_num = :num";
+    $sql = "SELECT * FROM vik_reservation JOIN vik_client USING (cli_num) WHERE cli_num = :num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['num' => $cli_num]);
     $tab = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -46,7 +60,7 @@ function HistoriqueReservationsClient($conn, $cli_num) {
 
 // récupère toutes les info d'un client à l'aide d'un cli_num
 function ListeInfosClient($conn, $cli_num) {
-    $sql = "SELECT * FROM sae.vik_client WHERE cli_num = :num";
+    $sql = "SELECT * FROM vik_client WHERE cli_num = :num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['num' => $cli_num]);
     $client = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,7 +76,7 @@ function TrajetsEtHorairesMemeLigne($conn, $code_insee_depart, $code_insee_arriv
     $sql = "SELECT LIG_NUM, 
                    TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_depart,
                    ETA_DISTANCE AS distance
-            FROM sae.VIK_ETAPE
+            FROM VIK_ETAPE
             WHERE COM_CODE_INSEE_DEPART = :depart 
               AND COM_CODE_INSEE_ARRIVEE = :arrivee
             ORDER BY ETA_HEURE ASC";
@@ -76,7 +90,7 @@ function TrajetPlusCourtMemeLigne($conn, $code_insee_depart, $code_insee_arrivee
     $sql = "SELECT LIG_NUM, 
                    ETA_DISTANCE,
                    TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_voyage
-            FROM sae.VIK_ETAPE
+            FROM VIK_ETAPE
             WHERE COM_CODE_INSEE_DEPART = :depart 
               AND COM_CODE_INSEE_ARRIVEE = :arrivee
             ORDER BY ETA_DISTANCE ASC
@@ -91,7 +105,7 @@ function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrive
     $sql = "SELECT LIG_NUM, 
                    TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_voyage,
                    ETA_DISTANCE
-            FROM sae.VIK_ETAPE
+            FROM VIK_ETAPE
             WHERE COM_CODE_INSEE_DEPART = :depart 
               AND COM_CODE_INSEE_ARRIVEE = :arrivee
             ORDER BY ETA_HEURE ASC
@@ -106,14 +120,14 @@ function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrive
 // fonctions en cours de dev, ne pas encore utiliser
 //
 function ListeHorairesLigne($conn){
-    $cur = $conn->query("select * from sae.vik_ligne");
+    $cur = $conn->query("select * from vik_ligne");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
 }
 
 function userAllowed($conn,$adresseMailClient , $userPassword){
 
-    $cur = $conn->query("select * from sae.vik_ligne");
+    $cur = $conn->query("select * from vik_ligne");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     
     return $tab;
