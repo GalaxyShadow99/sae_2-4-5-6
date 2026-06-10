@@ -1,4 +1,18 @@
-/* ce style est vide n'hésitez pas à le remplir si besoin, actuellement il n'est utilisé nul part !
+html,
+body {
+	min-height: 100%;
+}
 
-si vous l'utilisez pensez à l'inclure !!
-*/
+body {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+main {
+	flex: 1 0 auto;
+}
+
+footer {
+	margin-top: auto !important;
+}

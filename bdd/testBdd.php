@@ -5,16 +5,6 @@ require_once 'BddClientUtils.php';
 require_once 'BddLigneUtils.php';
 require_once 'BddTrajetUtils.php';
 
-/* 
-echo '<style>
-    body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #1a1a1a; color: #fff; }
-    .status { padding: 20px; font-size: 24px; font-weight: bold; border-radius: 5px; margin-bottom: 20px; }
-    .success { background-color: #2ecc71; color: #fff; }
-    .error { background-color: #e74c3c; color: #fff; }
-    pre { background: #2c3e50; padding: 15px; border-radius: 5px; font-size: 16px; overflow-x: auto; }
-</style>';
-*/
-
 if (!defined('MOD_BDD')) {
     define('MOD_BDD', 'ORACLE');
 }
@@ -49,7 +39,7 @@ try {
         $insee_arr_test = '50041';
 
         echo '<hr style="border: 1px solid #34495e; margin: 40px 0;">';
-        echo '<h2>🧪 Rapport de test des fonctions utilitaires</h2>';
+        echo '<h2>Rapport de test des fonctions utilitaires</h2>';
 
         // Test ListeInfosClient
         echo '<h3>Test : ListeInfosClient($conn, "' . $id_client_test . '")</h3>';

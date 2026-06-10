@@ -41,10 +41,8 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
         $stmt->execute(['ligne' => $numLigne, 'depart' => $comDepart, 'arrivee' => $comArrivee]);
         $etape = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Si pas trouvé, on prend une distance par défaut (tranche 1 = 0-10km = 5€)
+        // Si pas trouvé, distance par défaut
         $distance = $etape ? $etape['ETA_DISTANCE'] : 5;
-
-        // Cherche la tranche tarifaire
         $sqlTarif = "SELECT TAR_NUM_TRANCHE, TAR_PRIX AS PRIX
                      FROM vik_tarif
                      WHERE TAR_MIN_DIST <= :distance

@@ -1,4 +1,4 @@
-<footer class="bg-dark text-white-50 mt-5 py-5 border-top border-secondary border-opacity-25">
+<footer class="bg-dark text-white-50 mt-auto py-5 border-top border-secondary border-opacity-25">
     <div class="container">
 
         <div class="row gy-4">

@@ -1,3 +1,6 @@
+// Idées de requêtes réalisées par Joan
+
+
 utils : update sae.vik_client set cli_date_connection = (select sysdate from dual) where cli_num = :Cli;
 
 1: select lig_num from sae.vik_ligne order by lig_num;
