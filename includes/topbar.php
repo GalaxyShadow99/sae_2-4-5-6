@@ -26,10 +26,10 @@
                     <a class="nav-link active px-3 rounded-2 transition" aria-current="page" href="index.php">Accueil</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3 rounded-2 transition" href="#">Réseau</a>
+                    <a class="nav-link px-3 rounded-2 transition" href="lignes.php">Lignes</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3 rounded-2 transition" href="lignes.php">Lignes</a>
+                    <a class="nav-link px-3 rounded-2 transition" href="reserver.php">Réserver</a>
                 </li>
             </ul>
 

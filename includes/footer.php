@@ -15,16 +15,6 @@
                 </p>
             </div>
 
-<div class="col mb-3"></div>
-
-<div class="col mb-3">
-    <h5>Gestion Réseau</h5>
-    <ul class="nav flex-column">
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    </ul>
-</div>
-
 <div class="col mb-3">
     <h5>Base de Données</h5>
     <ul class="nav flex-column">
