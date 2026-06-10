@@ -20,12 +20,12 @@
         // --- TRAITEMENT DU FORMULAIRE (POST) ---
         $message     = '';
         $messageType = '';
-        $tarifsCalcules = []; // contiendra le tarif par segment après soumission
+        $tarifsCalcules = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nom    = trim(htmlspecialchars($_POST['nom']    ?? ''));
-            $prenom = trim(htmlspecialchars($_POST['prenom'] ?? ''));
-            $email  = trim(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL));
+            $nom    = trim($_POST['nom']    ?? '');
+            $prenom = trim($_POST['prenom'] ?? '');
+            $email  = trim($_POST['email']  ?? '');
 
             // Récupération des segments (tableaux)
             $numLignes   = $_POST['Num_Ligne']   ?? [];
@@ -50,12 +50,12 @@
             }
 
             if (!empty($erreurs)) {
-                $message     = implode('<br>', $erreurs);
+                // Échapper chaque message individuellement avant de les joindre
+                $message     = implode('<br>', array_map('htmlspecialchars', $erreurs));
                 $messageType = 'danger';
             } else {
                 // Calcul du tarif pour chaque segment (US6)
                 $prixTotal = 0;
-                $tarifsOk  = true;
                 foreach ($numLignes as $i => $ligne) {
                     $dep = trim($comDeparts[$i]);
                     $arr = trim($comArrivees[$i]);
@@ -68,21 +68,23 @@
                     }
                 }
 
-                // Insertion de chaque segment (US4 : pas de compte requis)
-                $toutOk = true;
-                foreach ($numLignes as $i => $ligne) {
-                    $dep    = trim($comDeparts[$i]);
-                    $arr    = trim($comArrivees[$i]);
-                    $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
-                    $prix   = $tarifsCalcules[$i]['PRIX'] ?? null;
-                    $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
-                    if (!$ok) $toutOk = false;
-                }
-
-                if ($toutOk) {
-                    $message     = 'Votre réservation a bien été enregistrée !' . ($prixTotal > 0 ? ' Prix total : <strong>' . $prixTotal . ' €</strong>' : '');
+                // Insertion de chaque segment dans une seule transaction (US4)
+                try {
+                    $conn->beginTransaction();
+                    foreach ($numLignes as $i => $ligne) {
+                        $dep    = trim($comDeparts[$i]);
+                        $arr    = trim($comArrivees[$i]);
+                        $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
+                        $prix   = $tarifsCalcules[$i]['PRIX'] ?? null;
+                        $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
+                        if (!$ok) throw new Exception('Échec insertion segment ' . ($i + 1));
+                    }
+                    $conn->commit();
+                    $prixStr = $prixTotal > 0 ? ' Prix total : <strong>' . htmlspecialchars((string)$prixTotal) . ' €</strong>' : '';
+                    $message     = 'Votre réservation a bien été enregistrée !' . $prixStr;
                     $messageType = 'success';
-                } else {
+                } catch (Exception $e) {
+                    $conn->rollBack();
                     $message     = 'Une erreur est survenue lors de la réservation. Veuillez réessayer.';
                     $messageType = 'danger';
                 }
@@ -93,7 +95,7 @@
         ?>
 
         <?php if ($message): ?>
-            <div class="alert alert-<?= $messageType ?> mt-3" role="alert">
+            <div class="alert alert-<?= htmlspecialchars($messageType) ?> mt-3" role="alert">
                 <?= $message ?>
             </div>
         <?php endif; ?>
@@ -127,7 +129,6 @@
                     <!-- Segments de voyage (US5 : plusieurs lignes) -->
                     <div id="segments-container">
                         <?php
-                        // Restaurer les segments après un POST raté, sinon afficher 1 segment vide
                         $postLignes   = $_POST['Num_Ligne']  ?? [''];
                         $postDeparts  = $_POST['Com_depart'] ?? [''];
                         $postArrivees = $_POST['Com_arrivee'] ?? [''];
@@ -175,7 +176,7 @@
                                 <!-- US6 : affichage du tarif calculé pour ce segment -->
                                 <?php if (!empty($tarifsCalcules[$si])): ?>
                                     <div class="alert alert-info py-2">
-                                        Tarif estimé pour ce trajet : <strong><?= $tarifsCalcules[$si]['PRIX'] ?> €</strong>
+                                        Tarif estimé pour ce trajet : <strong><?= htmlspecialchars((string)$tarifsCalcules[$si]['PRIX']) ?> €</strong>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -200,7 +201,6 @@
         <script>
             const communes = <?= json_encode($communes) ?>;
 
-            // Remplit départ et arrivée d'un bloc en fonction de la ligne choisie
             function remplirArrets(selectLigne, selectDepart, selectArrivee, valDepart = '', valArrivee = '') {
                 const ligNum = selectLigne.value.trim();
 
@@ -230,14 +230,12 @@
                 });
             }
 
-            // Attache les événements à un bloc segment
             function initBloc(bloc) {
                 const selLigne   = bloc.querySelector('.select-ligne');
                 const selDepart  = bloc.querySelector('.select-depart');
                 const selArrivee = bloc.querySelector('.select-arrivee');
                 const btnSuppr   = bloc.querySelector('.btn-supprimer');
 
-                // Restaurer les arrêts si une ligne était déjà sélectionnée (après POST raté)
                 if (selLigne.value) {
                     const savedDep = selDepart.dataset.selected  || '';
                     const savedArr = selArrivee.dataset.selected || '';
@@ -263,10 +261,8 @@
                 });
             }
 
-            // Initialiser tous les blocs existants au chargement
             document.querySelectorAll('.segment-bloc').forEach(initBloc);
 
-            // Bouton "Ajouter une ligne" (US5)
             let segmentCount = <?= count($postLignes) ?>;
 
             document.getElementById('btn-ajouter-ligne').addEventListener('click', function () {
@@ -308,7 +304,6 @@
                 renuméroterSegments();
             });
 
-            // Génère les <option> des lignes en JS (pour les blocs ajoutés dynamiquement)
             const lignesData = <?= json_encode(array_map(fn($l) => [
                 'num'   => trim($l['LIG_NUM']),
                 'debu'  => $l['COM_CODE_INSEE_DEBU'],
