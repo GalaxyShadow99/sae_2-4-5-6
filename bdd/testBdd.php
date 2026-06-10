@@ -1,7 +1,9 @@
 <?php
 
 require_once 'env.php';
-require_once 'BddUtils.php';
+require_once 'BddClientUtils.php';
+require_once 'BddLigneUtils.php';
+require_once 'BddTrajetUtils.php';
 
 /* 
 echo '<style>

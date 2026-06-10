@@ -10,7 +10,7 @@ include_once("./includes/head.php"); ?>
 
     <?php
         include_once("./bdd/env.php");
-        include_once("./bdd/BddUtils.php");
+        include_once("./bdd/BddClientUtils.php");
 
         $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 

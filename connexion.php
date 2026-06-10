@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE){
 }
 //chargements de outils de connexion et des requêtes necessaires
 require_once './bdd/env.php';
-require_once './bdd/BddUtils.php';
+require_once './bdd/BddClientUtils.php';
 //variable en cas d'erreurs
 $message_erreur = "";
 // vérification si la page est chargé suite au clic sur le  bouton se connecter

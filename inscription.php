@@ -65,7 +65,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <p class="mb-0 mt-2">Veuillez rentrer vos informations</p>
                     </div>
 
-                    <?php ?>
+                    <?php if(!empty($error)): ?>
+                        <div class="alert alert-danger"><?= htmlspecialchars($error)?></div>
+                    <?php endif;?>
 
                     <div class="card-body p-4">
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/BddConnexionUtils.php';
+
 function RecupereVille($conn,$code_insee){
     $sql = "SELECT com_nom FROM vik_commune WHERE com_code_insee = :num";
     $stmt = preparerRequetePDO($conn, $sql);
