@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="fr" class="h-100">
-
 <?php 
 if (session_status() === PHP_SESSION_NONE) session_start();
 include_once("./includes/head.php"); ?>
+<!DOCTYPE html>
+<html lang="fr" class="h-100">
 
 <body class="d-flex flex-column h-100 bg-light text-dark">
     <?php include_once("./includes/topbar.php"); ?>
@@ -14,7 +13,7 @@ include_once("./includes/head.php"); ?>
 
         $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
-        $cli_num = 4;
+        $cli_num = $_SESSION['user_id'];
 
         $client = null;
         $reservations = [];

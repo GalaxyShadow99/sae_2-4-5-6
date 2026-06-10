@@ -3,8 +3,12 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 include_once("./bdd/env.php"); 
 include_once("./bdd/Inscription_utils.php"); 
+include_once("./bdd/BddConnexionUtils.php"); 
+
 
 $error = "";
+$success = $_SESSION['inscription_success'] ?? '';
+unset($_SESSION['inscription_success']);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
@@ -42,8 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         else {
             $res = AjouteClient($conn, $nom, $prenom, $ville, $tel, $mail, $mdp);
 
-            if ($res) null;
-            else $error = "Erreur de serveur : insertion échouée.";
+            if ($res) {
+                $_SESSION['inscription_success'] = "Votre inscription a bien été prise en compte.";
+                header('Location: inscription.php');
+                exit;
+            } else {
+                $error = "Erreur de serveur : insertion échouée.";
+            }
         }
     }
 }
@@ -125,5 +134,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
+
+    <?php if (!empty($success)): ?>
+        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header text-white" style="background: linear-gradient(135deg, #198754, #20c997);">
+                        <h5 class="modal-title fw-bold" id="successModalLabel">Inscription réussie</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <div class="display-4 mb-3">✓</div>
+                        <p class="mb-0 fs-5"><?= htmlspecialchars($success) ?></p>
+                    </div>
+                    <div class="modal-footer justify-content-center border-0 pb-4">
+                        <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Continuer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                modal.show();
+            });
+        </script>
+    <?php endif; ?>
 </body>
 </html>
