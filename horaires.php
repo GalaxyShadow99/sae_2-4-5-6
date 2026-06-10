@@ -1,4 +1,3 @@
-
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 include_once("./bdd/env.php");
@@ -22,7 +21,7 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
     }
 } elseif (isset($_GET['lig_num'])) {
     $lig_selectionnee = $_GET['lig_num'];
-    $villes = VillesParLigne($conn, $lig_selectionnee);
+    $villes = ObtenirVillesOrdonnees($conn, $lig_selectionnee);
 }
 ?>
 

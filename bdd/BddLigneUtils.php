@@ -38,13 +38,31 @@ function ProchainArret($conn,$lig_num){
 }
 
 function ObtenirVillesOrdonnees($conn, $lig_num) {
-    $sql = "SELECT c.COM_CODE_INSEE, c.COM_NOM 
+    $sql = "SELECT c.COM_CODE_INSEE, c.COM_NOM
             FROM vik_commune c
-            JOIN vik_noeud n ON c.COM_CODE_INSEE = n.COM_CODE_INSEE_ARRET
-            WHERE TRIM(n.LIG_NUM) = :lig_num
-            ORDER BY n.NOE_HEURE_PASSAGE ASC";
-
+            JOIN (
+                SELECT COM_CODE_INSEE_ARRET as code, MIN(NOE_HEURE_PASSAGE) as PREMIERE_HEURE
+                FROM vik_noeud
+                WHERE TRIM(LIG_NUM) = :lig_num1
+                GROUP BY COM_CODE_INSEE_ARRET
+                UNION
+                SELECT COM_CODE_INSEE_SUIVANT, MAX(NOE_HEURE_PASSAGE)
+                FROM vik_noeud
+                WHERE TRIM(LIG_NUM) = :lig_num2
+                AND COM_CODE_INSEE_SUIVANT NOT IN (
+                    SELECT COM_CODE_INSEE_ARRET FROM vik_noeud WHERE TRIM(LIG_NUM) = :lig_num3
+                )
+                GROUP BY COM_CODE_INSEE_SUIVANT
+            ) n ON c.COM_CODE_INSEE = n.code
+            ORDER BY n.PREMIERE_HEURE ASC";
     $stmt = preparerRequetePDO($conn, $sql);
-    $stmt->execute(['lig_num' => $lig_num]);
+    $stmt->execute([
+        'lig_num1' => $lig_num,
+        'lig_num2' => $lig_num,
+        'lig_num3' => $lig_num
+    ]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+ 
+
+
