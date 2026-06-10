@@ -22,9 +22,9 @@ function majDonneesPDO($conn, $sql) {
 function VillesParLigne($conn, $num_ligne) {
     $sql = "SELECT DISTINCT c.com_code_insee, c.com_nom 
             FROM vik_commune c
-            JOIN vik_noeud n ON c.com_code_insee = n.com_code_insee
-            WHERE n.lig_num = :ligne
-            ORDER BY n.noe_num ASC"; 
+            JOIN vik_noeud n ON c.com_code_insee = n.com_code_insee_arret
+            WHERE TRIM(n.lig_num) = :ligne
+            ORDER BY c.com_nom ASC"; 
     $stmt = $conn->prepare($sql);
     $stmt->execute(['ligne' => $num_ligne]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -128,8 +128,8 @@ function ListeHorairesLigne($conn, $lig_num){
     $cur = $conn->query("
                         SELECT COM_CODE_INSEE_ARRET, TO_CHAR(NOE_HEURE_PASSAGE, 'HH24:MI') AS NOE_HEURE_PASSAGE 
                          FROM VIK_NOEUD 
-                         WHERE LIG_NUM = '$lig_num'
-                         order by COM_CODE_INSEE_ARRET
+                         WHERE TRIM(LIG_NUM) = '$lig_num'
+                         order by NOE_HEURE_PASSAGE
     ");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
