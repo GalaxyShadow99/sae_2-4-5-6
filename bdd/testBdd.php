@@ -40,7 +40,15 @@ try {
 
         echo '<h3>Test : ListeLignes($conn)</h3>';
         $lignes = ListeLignes($conn);
-        echo '<pre>'; print_r($lignes); echo '</pre>';
+        echo '<pre>'; print_r($lignes);
+        echo '<h3>Colonnes de vik_ligne :</h3>';
+        $stmt = $conn->query("SELECT column_name FROM all_tab_columns WHERE table_name = 'VIK_LIGNE' AND owner = 'SAE' ORDER BY column_id");
+        echo '<pre>'; print_r($stmt->fetchAll(PDO::FETCH_ASSOC)); echo '</pre>';
+
+        echo '<h3>Colonnes de vik_noeud :</h3>';
+        $stmt = $conn->query("SELECT column_name FROM all_tab_columns WHERE table_name = 'VIK_NOEUD' AND owner = 'SAE' ORDER BY column_id");
+        echo '<pre>'; print_r($stmt->fetchAll(PDO::FETCH_ASSOC)); echo '</pre>';
+        echo '</pre>';
 
         $id_client_test = '10';
         $insee_dep_test = '14118';
