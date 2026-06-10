@@ -49,8 +49,8 @@ include_once("./bdd/BddUtils.php");
                         <thead class="table-light text-uppercase fs-7 fw-bold text-secondary border-bottom">
                             <tr>
                                 <th scope="col" class="ps-4 py-3" style="width: 25%;">N° Ligne</th>
-                                <th scope="col" class="py-3">Code INSEE Départ</th>
-                                <th scope="col" class="py-3">Code INSEE Arrivée</th>
+                                <th scope="col" class="py-3">DéPART</th>
+                                <th scope="col" class="py-3">TERMINUS</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,7 +79,7 @@ include_once("./bdd/BddUtils.php");
                                         $badgeColor = 'bg-danger';
                                     }
                                     ?>
-                                    <tr>
+                                    <tr style="cursor:pointer" onclick="location.href='horaires.php?lig_num=<?= urlencode($numLigne) ?>'" >
                                         <td class="ps-4 py-3">
                                             <span class="badge <?= $badgeColor ?> fs-6 px-3 py-2 font-monospace">
                                                 Ligne <?= htmlspecialchars($numLigne) ?>
@@ -87,14 +87,12 @@ include_once("./bdd/BddUtils.php");
                                         </td>
                                         <td class="py-3">
                                             <div>
-                                                <span class="fw-semibold text-dark font-monospace"><?= htmlspecialchars($ligne['COM_CODE_INSEE_DEBU'] ?? '—') ?></span>
-                                                <small class="text-muted d-block" style="font-size: 0.75rem;">Origine</small>
+                                                <span class="fw-semibold text-dark font-monospace"><?= htmlspecialchars(RecupereVille($conn,$ligne['COM_CODE_INSEE_DEBU']) ?? '—') ?></span>
                                             </div>
                                         </td>
                                         <td class="py-3">
                                             <div>
-                                                <span class="fw-semibold text-dark font-monospace"><?= htmlspecialchars($ligne['COM_CODE_INSEE_TERM'] ?? '—') ?></span>
-                                                <small class="text-muted d-block" style="font-size: 0.75rem;">Terminus</small>
+                                                <span class="fw-semibold text-dark font-monospace"><?= htmlspecialchars(RecupereVille($conn,$ligne['COM_CODE_INSEE_TERM']) ?? '—') ?></span>
                                             </div>
                                         </td>
                                     </tr>
