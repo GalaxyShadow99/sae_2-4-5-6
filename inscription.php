@@ -16,13 +16,14 @@ include_once("./bdd/BddUtils.php");
             </div>
         </div>
 
-        <form action="#">
+        <form action="" method="post">
             <input type="text" id="Cli_nom" name="Cli_nom" placeholder="Nom">
             <input type="text" id="Cli_prenom" name="Cli_prenom" placeholder="Prénom">
             <input type="text" id="Cli_ville" name="Cli_ville" placeholder="Ville">
             <input type="tel" id="Cli_tel" name="Cli_tel" placeholder="Téléphone">
             <input type="email" id="Cli_mail" name="Cli_mail" placeholder="Adresse mail">
             <input type="password" id="Cli_mdp" name="Cli_mdp" placeholder="Mot de passe">
+            <input type="password" id="Cli_mdp2" name="Cli_mdp2" placeholder="Confirmer mot de passe">
             <input type="submit" id="submitBtn" name="submitBtn" value="Confirmer">
         </form>
     </main>
