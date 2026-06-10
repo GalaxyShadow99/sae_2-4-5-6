@@ -30,7 +30,7 @@ function ListeCommunesLignes($conn) {
 
 function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
     try {
-        // Cherche la distance réelle dans vik_etape pour ce segment
+        // Cherche dans les étapes existantes
         $sqlDist = "SELECT ETA_DISTANCE FROM vik_etape
                     WHERE LIG_NUM = :ligne
                       AND COM_CODE_INSEE_DEPART  = :depart
@@ -39,16 +39,18 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
         $stmt = preparerRequetePDO($conn, $sqlDist);
         $stmt->execute(['ligne' => $numLigne, 'depart' => $comDepart, 'arrivee' => $comArrivee]);
         $etape = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$etape) return false;
 
-        // Cherche la tranche tarifaire correspondant à cette distance
+        // Si pas trouvé, on prend une distance par défaut (tranche 1 = 0-10km = 5€)
+        $distance = $etape ? $etape['ETA_DISTANCE'] : 5;
+
+        // Cherche la tranche tarifaire
         $sqlTarif = "SELECT TAR_NUM_TRANCHE, TAR_PRIX AS PRIX
                      FROM vik_tarif
-                     WHERE TAR_KM_MIN <= :distance
-                       AND TAR_KM_MAX >= :distance
+                     WHERE TAR_MIN_DIST <= :distance
+                       AND TAR_MAX_DIST >= :distance
                      FETCH FIRST 1 ROWS ONLY";
         $stmt = preparerRequetePDO($conn, $sqlTarif);
-        $stmt->execute(['distance' => $etape['ETA_DISTANCE']]);
+        $stmt->execute(['distance' => $distance]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: false;
 
     } catch (Exception $e) {
@@ -82,15 +84,16 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email) {
     // 3. Insert minimal (colonnes obligatoires seulement)
     $sqlInsert = "INSERT INTO vik_client 
                     (cli_num, cli_nom, cli_prenom, cli_courriel,
-                     cli_nb_points_ec, cli_nb_points_tot) 
+                     cli_nb_points_ec, cli_nb_points_tot, cli_mdp) 
                   VALUES 
-                    (:cli_num, :nom, :prenom, :email, 0, 0)";
+                    (:cli_num, :nom, :prenom, :email, 0, 0, :mdp)";
     $stmtInsert = preparerRequetePDO($conn, $sqlInsert);
     $ok = $stmtInsert->execute([
         'cli_num' => $cli_num,
         'nom'     => $nom,
         'prenom'  => $prenom,
         'email'   => $email,
+        'mdp' => md5(bin2hex(random_bytes(16))),
     ]);
 
     return $ok ? $cli_num : false;
