@@ -1,15 +1,11 @@
 ﻿<?php
-
-// LA BDD a été modifiée pour ajouter le champ mot de passe aux utilisateur pour la fonction de connexion !! 
-// merci donc de faire des select * régulier si vous avez des doutes sur la strcture de la base qui n'est pas à 1000% exacte par rapport au MLD
-
 // BDDUtils.php
 function OuvrirConnexionPDO($db, $db_username, $db_password) {
     try {
         $conn = new PDO($db, $db_username, $db_password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } catch (PDOException $erreur) {
-        //echo "Erreur connexion : " . $erreur->getMessage();
+        echo "Erreur connexion : " . $erreur->getMessage();
         $conn = null;
     }
     return $conn;
@@ -17,17 +13,6 @@ function OuvrirConnexionPDO($db, $db_username, $db_password) {
 
 function majDonneesPDO($conn, $sql) {
     return $conn->exec($sql);
-}
-
-function VillesParLigne($conn, $num_ligne) {
-    $sql = "SELECT DISTINCT c.com_code_insee, c.com_nom 
-            FROM vik_commune c
-            JOIN vik_noeud n ON c.com_code_insee = n.com_code_insee
-            WHERE n.lig_num = :ligne
-            ORDER BY n.noe_num ASC"; 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute(['ligne' => $num_ligne]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function preparerRequetePDO($conn, $sql) {
@@ -46,13 +31,6 @@ function ListeLignes($conn){
     $cur = $conn->query("select * from vik_ligne");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
-}
-
-function RecupereVille($conn,$code_insee){
-    $sql = "SELECT com_nom FROM vik_commune WHERE com_code_insee = :num";
-    $stmt = preparerRequetePDO($conn, $sql);
-    $stmt->execute(['num' => $code_insee]);
-    return $stmt->fetchColumn();
 }
 
 // récupère toutes les réservations associées à un cli_num
@@ -143,8 +121,20 @@ function userAllowed($conn,$adresseMailClient , $userPassword){
 
     $cur = $conn->query("select * from vik_ligne");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
-    
     return $tab;
 }
 
+function userAllowed($conn, $adresseMailClient, $userPassword){
+    $sql = "SELECT * FROM vik_client WHERE CLI_COURRIEL = :email";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['email' => $adresseMailClient]);
+    $client = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$client) return false;
+
+    if ($client['CLI_MDP'] === $userPassword){
+        return $client;
+    }
+    return false;
+}
 ?>
