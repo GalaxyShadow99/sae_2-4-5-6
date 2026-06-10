@@ -1,4 +1,5 @@
 <?php 
+if (session_status() === PHP_SESSION_NONE) session_start();
 include_once("./bdd/env.php"); 
 include_once("./bdd/BddUtils.php"); 
 ?>
