@@ -11,7 +11,7 @@
 
         <?php
         require_once './bdd/env.php';
-        require_once './bdd/BddUtils.php';
+        require_once './bdd/reserverutils.php';
         define('MOD_BDD', 'ORACLE');
         $conn    = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
         $lignes  = ListeLignes($conn);

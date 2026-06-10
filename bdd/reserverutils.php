@@ -1,10 +1,4 @@
-﻿<?php
-// BDDUtils.php
-
-// =====================================================
-// CONNEXION ET UTILITAIRES
-// =====================================================
-
+<?php 
 function OuvrirConnexionPDO($db, $db_username, $db_password) {
     try {
         $conn = new PDO($db, $db_username, $db_password);
@@ -15,25 +9,6 @@ function OuvrirConnexionPDO($db, $db_username, $db_password) {
     }
     return $conn;
 }
-
-function majDonneesPDO($conn, $sql) {
-    return $conn->exec($sql);
-}
-
-function preparerRequetePDO($conn, $sql) {
-    return $conn->prepare($sql);
-}
-
-function LireDonneesPDO3($conn, $sql, &$tab) {
-    $cur = $conn->query($sql);
-    $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
-    return count($tab);
-}
-
-// =====================================================
-// LIGNES & ARRÊTS
-// =====================================================
-
 function ListeLignes($conn) {
     $cur = $conn->query("SELECT LIG_NUM, COM_CODE_INSEE_DEBU, COM_CODE_INSEE_TERM 
                          FROM sae.vik_ligne ORDER BY LIG_NUM");
@@ -76,7 +51,6 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
         return false;
     }
 }
-
 function getTarifParDistance($conn, $distance) {
     $sql = "SELECT tar_num_tranche, tar_prix 
             FROM sae.vik_tarif 
@@ -85,12 +59,6 @@ function getTarifParDistance($conn, $distance) {
     $stmt->execute(['dist' => $distance]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
-
-// =====================================================
-// CLIENTS
-
-// =====================================================
-
 function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
     
     // 1. Cherche si l'email existe déjà
@@ -101,7 +69,7 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
     $row = $stmtSelect->fetch(PDO::FETCH_ASSOC);
 
     if ($row) {
-        return $row['CLI_NUM'];
+        return $row[array_key_first($row)];
     }
 
     // 2. Prochain cli_num
@@ -127,27 +95,61 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
 
     return $ok ? $cli_num : false;
 }
+function preparerRequetePDO($conn, $sql) {
+    return $conn->prepare($sql);
+}
 
-function ListeInfosClient($conn, $cli_num) {
-    $sql = "SELECT * FROM sae.vik_client WHERE cli_num = :num";
+function ListeHorairesLigne($conn, $numLigne) {
+    $sql = "SELECT LIG_NUM, COM_CODE_INSEE_DEPART, COM_CODE_INSEE_ARRIVEE,
+                   TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_depart,
+                   ETA_DISTANCE
+            FROM sae.vik_etape
+            WHERE LIG_NUM = :ligne
+            ORDER BY ETA_HEURE ASC";
     $stmt = preparerRequetePDO($conn, $sql);
-    $stmt->execute(['num' => $cli_num]);
+    $stmt->execute(['ligne' => $numLigne]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function TrajetsEtHorairesMemeLigne($conn, $code_insee_depart, $code_insee_arrivee) {
+    $sql = "SELECT LIG_NUM,
+                   TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_depart,
+                   ETA_DISTANCE AS distance
+            FROM sae.VIK_ETAPE
+            WHERE COM_CODE_INSEE_DEPART  = :depart
+              AND COM_CODE_INSEE_ARRIVEE = :arrivee
+            ORDER BY ETA_HEURE ASC";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['depart' => $code_insee_depart, 'arrivee' => $code_insee_arrivee]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function TrajetPlusCourtMemeLigne($conn, $code_insee_depart, $code_insee_arrivee) {
+    $sql = "SELECT LIG_NUM, ETA_DISTANCE,
+                   TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_voyage
+            FROM sae.VIK_ETAPE
+            WHERE COM_CODE_INSEE_DEPART  = :depart
+              AND COM_CODE_INSEE_ARRIVEE = :arrivee
+            ORDER BY ETA_DISTANCE ASC
+            FETCH FIRST 1 ROWS ONLY";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['depart' => $code_insee_depart, 'arrivee' => $code_insee_arrivee]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function getPointsClient($conn, $client_num) {
-    $sql = "SELECT cli_nb_points_ec, cli_nb_points_to 
-            FROM sae.vik_client WHERE cli_num = :cli_num";
+function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrivee) {
+    $sql = "SELECT LIG_NUM,
+                   TO_CHAR(ETA_HEURE, 'DD/MM/YYYY HH24:MI:SS') AS heure_voyage,
+                   ETA_DISTANCE
+            FROM sae.VIK_ETAPE
+            WHERE COM_CODE_INSEE_DEPART  = :depart
+              AND COM_CODE_INSEE_ARRIVEE = :arrivee
+            ORDER BY ETA_HEURE ASC
+            FETCH FIRST 1 ROWS ONLY";
     $stmt = preparerRequetePDO($conn, $sql);
-    $stmt->execute(['cli_num' => $client_num]);
+    $stmt->execute(['depart' => $code_insee_depart, 'arrivee' => $code_insee_arrivee]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
-
-
-
-// =====================================================
-// RÉSERVATIONS
-// =====================================================
 
 function getProchainResNum($conn, $client_num) {
     $sql = "SELECT NVL(MAX(res_num), 0) + 1 AS prochain 
@@ -159,40 +161,24 @@ function getProchainResNum($conn, $client_num) {
     return $row['PROCHAIN'];
 }
 
-function reserver_ligne($conn, $client_num, $tar_num_tranche, $res_date, $res_nb_points, $res_prix_tot) {
-    $res_num = getProchainResNum($conn, $client_num);
+function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $tarNum, $prix) {
+    // 1. Crée le client s'il n'existe pas, récupère son cli_num sinon
+    $cli_num = trouverOuCreerClient($conn, $nom, $prenom, $email);
+    if (!$cli_num) return false;
 
+    // 2. Insère la réservation
+    $res_num = getProchainResNum($conn, $cli_num);  // ⚠️ absente aussi du fichier
     $sql = "INSERT INTO sae.vik_reservation 
-                (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot) 
+                (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
             VALUES 
-                (:cli_num, :res_num, :tar_num, TO_DATE(:res_date,'YYYY-MM-DD'), :res_nb_points, :res_prix_tot)";
-
+                (:cli_num, :res_num, :tar_num, SYSDATE, 0, :prix)";
     $stmt = preparerRequetePDO($conn, $sql);
-    $ok = $stmt->execute([
-        'cli_num'       => $client_num,
-        'res_num'       => $res_num,
-        'tar_num'       => $tar_num_tranche,
-        'res_date'      => $res_date,
-        'res_nb_points' => $res_nb_points,
-        'res_prix_tot'  => $res_prix_tot
+    return $stmt->execute([
+        'cli_num' => $cli_num,
+        'res_num' => $res_num,
+        'tar_num' => $tarNum,
+        'prix'    => $prix
     ]);
-
-    return $ok ? $res_num : false;
 }
-
-function HistoriqueReservationsClient($conn, $cli_num) {
-    $sql = "SELECT * FROM sae.vik_reservation 
-            JOIN sae.vik_client USING (cli_num) 
-            WHERE cli_num = :num";
-    $stmt = preparerRequetePDO($conn, $sql);
-    $stmt->execute(['num' => $cli_num]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-// =====================================================
-// TRAJETS & HORAIRES
-// =====================================================
-
-
 
 ?>
