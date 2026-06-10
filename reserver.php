@@ -14,20 +14,19 @@
         require_once './bdd/BddUtils.php';
         define('MOD_BDD', 'ORACLE');
         $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
-        $lignes = ListeLignes($conn);
-        $communes = ListeCommunesLignes($conn);
+        $lignes  = ListeLignes($conn);       // LIG_NUM, COM_CODE_INSEE_DEBU, COM_CODE_INSEE_TERM
+        $communes = ListeCommunesLignes($conn); // LIG_NUM, COM_CODE_INSEE_ARRET
 
         // --- TRAITEMENT DU FORMULAIRE (POST) ---
         $message = '';
         $messageType = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Nettoyage et validation des entrées
-            $nom    = trim(htmlspecialchars($_POST['nom']    ?? ''));
-            $prenom = trim(htmlspecialchars($_POST['prenom'] ?? ''));
-            $email  = trim(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL));
-            $numLigne   = trim($_POST['Num_Ligne']  ?? '');
-            $comDepart  = trim($_POST['Com_depart'] ?? '');
+            $nom        = trim(htmlspecialchars($_POST['nom']    ?? ''));
+            $prenom     = trim(htmlspecialchars($_POST['prenom'] ?? ''));
+            $email      = trim(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL));
+            $numLigne   = trim($_POST['Num_Ligne']   ?? '');
+            $comDepart  = trim($_POST['Com_depart']  ?? '');
             $comArrivee = trim($_POST['Com_arrivee'] ?? '');
 
             if (empty($nom) || empty($prenom) || empty($email) || empty($numLigne) || empty($comDepart) || empty($comArrivee)) {
@@ -40,7 +39,6 @@
                 $message = 'La ville de départ et la ville d\'arrivée ne peuvent pas être identiques.';
                 $messageType = 'danger';
             } else {
-                // Appel à la fonction de réservation
                 $resultat = reserverLigne($conn, $nom, $prenom, $email, $numLigne, $comDepart, $comArrivee);
                 if ($resultat) {
                     $message = 'Votre réservation a bien été enregistrée !';
@@ -84,31 +82,36 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="Num_Ligne" class="form-label">Numéro de ligne *</label>
+                        <label for="Num_Ligne" class="form-label">Ligne *</label>
                         <select class="form-select" id="Num_Ligne" name="Num_Ligne" required>
-                            <option value="" disabled selected>-- Choisir un numéro --</option>
-                            <?php foreach ($lignes as $Ligne) { ?>
-                                <option value="<?= htmlspecialchars($Ligne['LIG_NUM']) ?>"
-                                    <?= (($_POST['Num_Ligne'] ?? '') == $Ligne['LIG_NUM']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($Ligne['LIG_NUM']) ?>
+                            <option value="" disabled selected>-- Choisir une ligne --</option>
+                            <?php foreach ($lignes as $Ligne): ?>
+                                <?php
+                                    // On construit un libellé lisible :
+                                    // "Ligne 1A  (14118 → 50041)"
+                                    $label = 'Ligne ' . trim($Ligne['LIG_NUM'])
+                                           . '  (' . $Ligne['COM_CODE_INSEE_DEBU']
+                                           . ' → ' . $Ligne['COM_CODE_INSEE_TERM'] . ')';
+                                ?>
+                                <option value="<?= htmlspecialchars(trim($Ligne['LIG_NUM'])) ?>"
+                                    <?= (trim($_POST['Num_Ligne'] ?? '') === trim($Ligne['LIG_NUM'])) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($label) ?>
                                 </option>
-                            <?php } ?>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <!-- CORRECTION : le for du label correspond bien à l'id du select -->
-                        <label for="Com_depart" class="form-label">Ville de départ *</label>
+                        <label for="Com_depart" class="form-label">Arrêt de départ *</label>
                         <select class="form-select" id="Com_depart" name="Com_depart" required>
-                            <option value="" disabled selected>-- Choisir une ville --</option>
+                            <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <!-- CORRECTION : ville d'arrivée devient aussi un select dynamique -->
-                        <label for="Com_arrivee" class="form-label">Ville d'arrivée *</label>
+                        <label for="Com_arrivee" class="form-label">Arrêt d'arrivée *</label>
                         <select class="form-select" id="Com_arrivee" name="Com_arrivee" required>
-                            <option value="" disabled selected>-- Choisir une ville --</option>
+                            <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                         </select>
                     </div>
 
@@ -121,32 +124,38 @@
         </div>
 
         <script>
-            // On passe les communes PHP vers JavaScript
+            // Données des arrêts transmises depuis PHP
+            // Chaque entrée : { LIG_NUM: "1A ", COM_CODE_INSEE_ARRET: "14118" }
             const communes = <?= json_encode($communes) ?>;
 
             function remplirSelects(ligNum) {
                 const selectDepart  = document.getElementById('Com_depart');
                 const selectArrivee = document.getElementById('Com_arrivee');
 
-                // Vider les deux selects
-                selectDepart.innerHTML  = '<option value="" disabled selected>-- Choisir une ville --</option>';
-                selectArrivee.innerHTML = '<option value="" disabled selected>-- Choisir une ville --</option>';
+                selectDepart.innerHTML  = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
+                selectArrivee.innerHTML = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
 
-                // Filtrer les communes de la ligne choisie
-                const communesFiltrees = communes.filter(c => c['LIG_NUM'] == ligNum);
+                // LIG_NUM en base contient parfois un espace en fin ("1A ") — on trim des deux côtés
+                const arrets = communes.filter(c => c['LIG_NUM'].trim() === ligNum.trim());
 
-                communesFiltrees.forEach(c => {
-                    // Départ
-                    const optDepart = document.createElement('option');
-                    optDepart.value       = c['COM_CODE_INSEE_ARRET'];
-                    optDepart.textContent = c['COM_CODE_INSEE_ARRET']; // Remplacer par le nom si disponible en BDD
-                    selectDepart.appendChild(optDepart);
+                if (arrets.length === 0) {
+                    selectDepart.innerHTML  = '<option value="" disabled selected>Aucun arrêt trouvé</option>';
+                    selectArrivee.innerHTML = '<option value="" disabled selected>Aucun arrêt trouvé</option>';
+                    return;
+                }
 
-                    // Arrivée (CORRECTION : même logique que départ)
-                    const optArrivee = document.createElement('option');
-                    optArrivee.value       = c['COM_CODE_INSEE_ARRET'];
-                    optArrivee.textContent = c['COM_CODE_INSEE_ARRET'];
-                    selectArrivee.appendChild(optArrivee);
+                arrets.forEach(c => {
+                    const code = c['COM_CODE_INSEE_ARRET'];
+
+                    const optD = document.createElement('option');
+                    optD.value       = code;
+                    optD.textContent = code;
+                    selectDepart.appendChild(optD);
+
+                    const optA = document.createElement('option');
+                    optA.value       = code;
+                    optA.textContent = code;
+                    selectArrivee.appendChild(optA);
                 });
             }
 
@@ -154,11 +163,11 @@
                 remplirSelects(this.value);
             });
 
-            // Si le formulaire a été soumis avec des valeurs, on re-remplit les selects
+            // Restaurer les sélections après un POST raté (validation serveur)
             <?php if (!empty($_POST['Num_Ligne'])): ?>
             (function () {
-                remplirSelects('<?= htmlspecialchars($_POST['Num_Ligne']) ?>');
-                document.getElementById('Com_depart').value  = '<?= htmlspecialchars($_POST['Com_depart'] ?? '') ?>';
+                remplirSelects('<?= htmlspecialchars(trim($_POST['Num_Ligne'])) ?>');
+                document.getElementById('Com_depart').value  = '<?= htmlspecialchars($_POST['Com_depart']  ?? '') ?>';
                 document.getElementById('Com_arrivee').value = '<?= htmlspecialchars($_POST['Com_arrivee'] ?? '') ?>';
             })();
             <?php endif; ?>
