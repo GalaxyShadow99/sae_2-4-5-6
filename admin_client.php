@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-echo "<pre></pre>";
+echo "<pre>$_SESSION</pre>";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
