@@ -33,6 +33,18 @@ function ListeLignes($conn){
     return $tab;
 }
 
+function ListeCommunesLignes($conn){
+    $cur = $conn->query("select lig_num, com_code_insee_arret from sae.vik_noeud");
+    $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
+    return $tab;
+}
+
+function reserverLigne($conn, $sql){
+
+}
+
+
+
 // récupère toutes les réservations associées à un cli_num
 function HistoriqueReservationsClient($conn, $cli_num) {
  
