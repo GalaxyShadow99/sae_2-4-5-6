@@ -1,46 +1,58 @@
-<?php
-//on démarre la session PHP si elle n'est pas déjà active sur la page
-if (session_status() === PHP_SESSION_NONE){
-  session_start();
-}
-?>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25 sticky-top">
+    <div class="container"> 
 
-<nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
-  <div class="container">
-    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start w-100">
-      
-      <a href="index.php" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none font-weight-bold me-4">
-        <span class="fs-5 text-primary">Viking Transport</span>
-      </a>
+        <div class="col-lg-4 d-flex justify-content-start align-items-center">
+            <a class="navbar-brand fw-bold text-uppercase tracking-wider fs-5 text-white d-flex align-items-center mb-0" href="index.php">
+                <img src="assets/logo_blanc.png" alt="Logo" height="45" class="me-2 rounded-1 shadow-sm">
+                <span>
+                    <span style="color: rgb(255, 220, 0);">Viking</span> Transport
+                </span>
+            </a>
+        </div>
 
-      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-        <li><a href="index.php" class="nav-link px-2 link-secondary">Accueil</a></li>
-        <li><a href="#" class="nav-link px-2 link-body-emphasis">Réseau</a></li>
-        <li><a href="#" class="nav-link px-2 link-body-emphasis">Lignes</a></li>
-      </ul>
+        <button class="navbar-toggler border-0 navbar-dark" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarViking"
+                aria-controls="navbarViking"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-      <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
-        <input type="search" class="form-control" placeholder="Rechercher..." aria-label="Search">
-      </form>
+        <div class="collapse navbar-collapse col-lg-8" id="navbarViking">
 
-      <div class="d-flex align-items-center me-2">
-          <?php if (isset($_SESSION['user_id'])): ?>
-              <span class="me-3 text-body-emphasis small">Bonjour, <?= htmlspecialchars($_SESSION['user_prenom']) ?></span>
-              <a href="deconnexion.php" class="btn btn-outline-danger btn-sm">Déconnexion</a>
-          <?php else: ?>
-              <a href="connexion.php" class="btn btn-primary btn-sm">Connexion</a>
-          <?php endif; ?>
-      </div>
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 gap-lg-3 col-lg-6 justify-content-lg-center"> 
+                <li class="nav-item">
+                    <a class="nav-link active px-3 rounded-2 transition" aria-current="page" href="index.php">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 rounded-2 transition" href="#">Réseau</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 rounded-2 transition" href="lignes.php">Lignes</a>
+                </li>
+            </ul>
 
-      <div class="dropdown text-end">
-        <ul class="dropdown-menu dropdown-menu-end text-small">
-          <li><a class="dropdown-item" href="#">Admin BDD</a></li>
-          <li><a class="dropdown-item" href="#">Logs</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#">Diagnostic Connexion</a></li>
-        </ul>
-      </div>
+            <div class="d-flex align-items-center gap-2 mb-3 mb-lg-0 col-lg-6 justify-content-lg-end">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="deconnexion.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 
+                        style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
+                        Déconnexion
+                    </a>
+                <?php else: ?>
+                    <a href="connexion.php" class="btn btn-link text-white text-decoration-none px-3 py-2 transition hover-scale">
+                        Connexion
+                    </a>
+                    <a href="inscription.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 
+                        style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
+                        Inscription
+                    </a>
+                <?php endif; ?>
+                
+            </div>
 
     </div>
   </div>
 </nav>
+
+

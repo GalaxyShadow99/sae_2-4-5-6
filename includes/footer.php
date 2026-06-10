@@ -1,9 +1,19 @@
-<footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 my-5 border-top footer mt-auto py-3 ">
+<footer class="bg-dark text-white-50 mt-5 py-5 border-top border-secondary border-opacity-25">
+    <div class="container">
 
-<div class="col mb-3">
-    <h6 class="text-primary">SAÉ S2.04-05-06</h6>
-    <p class="text-muted small">© 2026 — BUT Informatique</p>
-</div>
+        <div class="row gy-4">
+
+            <div class="col-lg-4 col-md-12">
+                <h4 class="text-white fw-bold text-uppercase tracking-wider mb-3">
+                    <span style="color: rgb(255, 220, 0);">Viking</span> Transport
+                </h4>
+                <p class="text-white-50 mb-2 small">
+                    SAÉ S2.04-05-06 — BUT Informatique
+                </p>
+                <p class="small text-white-50">
+                    &copy; 2026 Tous droits réservés.
+                </p>
+            </div>
 
 <div class="col mb-3"></div>
 
