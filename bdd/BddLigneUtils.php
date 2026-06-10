@@ -14,7 +14,15 @@ function VillesParLigne($conn, $num_ligne) {
 }
 
 function ListeLignes($conn){
-    $cur = $conn->query("select * from vik_ligne");
+    $cur = $conn->query("SELECT l.LIG_NUM,
+                                l.COM_CODE_INSEE_DEBU,
+                                l.COM_CODE_INSEE_TERM,
+                                d.COM_NOM AS COM_NOM_DEBU,
+                                t.COM_NOM AS COM_NOM_TERM
+                         FROM vik_ligne l
+                         LEFT JOIN vik_commune d ON d.COM_CODE_INSEE = l.COM_CODE_INSEE_DEBU
+                         LEFT JOIN vik_commune t ON t.COM_CODE_INSEE = l.COM_CODE_INSEE_TERM
+                         ORDER BY l.LIG_NUM");
     return $cur->fetchAll(PDO::FETCH_ASSOC);
 }
 

@@ -3,7 +3,6 @@
 
 <?php include_once("./includes/head.php"); ?>
 <?php include_once("./bdd/BddLigneUtils.php"); ?>
-<?php include_once("./bdd/LigneUtils.php"); ?>
 <body>
     <?php include_once("./includes/topbar.php"); ?>
 
@@ -17,14 +16,6 @@
         $conn    = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
         $lignes  = ListeLignes($conn);
         $communes = ListeCommunesLignes($conn);
-        $nomsVilles = [];
-
-        foreach ($communes as $commune) {
-            $codeInsee = $commune['COM_CODE_INSEE_ARRET'];
-            if (!isset($nomsVilles[$codeInsee])) {
-                $nomsVilles[$codeInsee] = RecupereVille($conn, $codeInsee) ?: $codeInsee;
-            }
-        }
 
         // --- TRAITEMENT DU FORMULAIRE (POST) ---
         $message     = '';
@@ -63,7 +54,6 @@
                 $message     = implode('<br>', array_map('htmlspecialchars', $erreurs));
                 $messageType = 'danger';
             } else {
-                // Calcul du tarif pour chaque segment (US6)
                 $prixTotal = 0;
 foreach ($numLignes as $i => $ligne) {
     $dep = trim($comDeparts[$i]);
@@ -84,7 +74,6 @@ if (!empty($erreurs)) {
     $messageType = 'danger';
 } else {
 
-                // Insertion de chaque segment dans une seule transaction (US4)
                 try {
                     $conn->beginTransaction();
                     foreach ($numLignes as $i => $ligne) {
@@ -120,7 +109,6 @@ if (!empty($erreurs)) {
             <div class="col-md-7">
                 <form method="post" id="formReservation">
 
-                    <!-- Infos client (US4 : sans compte, nom/prénom/email suffisent) -->
                     <div class="card mb-4">
                         <div class="card-header fw-bold">Vos informations</div>
                         <div class="card-body">
@@ -142,7 +130,6 @@ if (!empty($erreurs)) {
                         </div>
                     </div>
 
-                    <!-- Segments de voyage (US5 : plusieurs lignes) -->
                     <div id="segments-container">
                         <?php
                         $postLignes   = $_POST['Num_Ligne']  ?? [''];
@@ -168,7 +155,9 @@ if (!empty($erreurs)) {
                                         <option value="" disabled <?= $sLigne === '' ? 'selected' : '' ?>>-- Choisir une ligne --</option>
                                         <?php foreach ($lignes as $Ligne):
                                             $val   = trim($Ligne['LIG_NUM']);
-                                            $label = 'Ligne ' . $val . '  (' . RecupereVille($conn, $Ligne['COM_CODE_INSEE_DEBU']) . ' → ' . RecupereVille($conn, $Ligne['COM_CODE_INSEE_TERM']) . ')';
+                                            $departNom = $Ligne['COM_NOM_DEBU'] ?? $Ligne['COM_CODE_INSEE_DEBU'];
+                                            $termNom   = $Ligne['COM_NOM_TERM'] ?? $Ligne['COM_CODE_INSEE_TERM'];
+                                            $label = 'Ligne ' . $val . '  (' . $departNom . ' → ' . $termNom . ')';
                                         ?>
                                             <option value="<?= htmlspecialchars($val) ?>"
                                                 <?= ($sLigne === $val) ? 'selected' : '' ?>>
@@ -233,15 +222,16 @@ if (!empty($erreurs)) {
 
                 arrets.forEach(c => {
                     const code = c['COM_CODE_INSEE_ARRET'];
-                    const ville = <?= json_encode($nomsVilles) ?>[code] || code;
+                    const ville = c['COM_NOM'] || code;
+                    const libelle = ville;
 
                     const optD = document.createElement('option');
-                    optD.value = code; optD.textContent = ville;
+                    optD.value = code; optD.textContent = libelle;
                     if (code === valDepart) optD.selected = true;
                     selectDepart.appendChild(optD);
 
                     const optA = document.createElement('option');
-                    optA.value = code; optA.textContent = ville;
+                    optA.value = code; optA.textContent = libelle;
                     if (code === valArrivee) optA.selected = true;
                     selectArrivee.appendChild(optA);
                 });
@@ -323,8 +313,8 @@ if (!empty($erreurs)) {
 
             const lignesData = <?= json_encode(array_map(fn($l) => [
                 'num'   => trim($l['LIG_NUM']),
-                'debu'  => RecupereVille($conn, $l['COM_CODE_INSEE_DEBU']) ?: $l['COM_CODE_INSEE_DEBU'],
-                'term'  => RecupereVille($conn, $l['COM_CODE_INSEE_TERM']) ?: $l['COM_CODE_INSEE_TERM'],
+                'debu'  => $l['COM_NOM_DEBU'] ?: $l['COM_CODE_INSEE_DEBU'],
+                'term'  => $l['COM_NOM_TERM'] ?: $l['COM_CODE_INSEE_TERM'],
             ], $lignes)) ?>;
 
             function buildLigneOptions() {
