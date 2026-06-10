@@ -105,8 +105,14 @@ function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrive
 //
 // fonctions en cours de dev, ne pas encore utiliser
 //
-function ListeHorairesLigne($conn){
-    $cur = $conn->query("select * from sae.vik_ligne");
+function ListeHorairesLigne($conn, $lig_num){
+    $cur = $conn->query("
+                        SELECT COM_CODE_INSEE_DEPART, COM_CODE_INSEE_ARRIVEE, 
+                        ETA_HEURE, ETA_DISTANCE 
+                         FROM sae.VIK_ETAPE 
+                         WHERE LIG_NUM = '$lig_num' 
+                         ORDER BY ETA_HEURE ASC
+    ");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
 }
