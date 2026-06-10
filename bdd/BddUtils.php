@@ -156,7 +156,7 @@ function getTarifParDistance($conn, $distance) {
 
 
 
-
+///fonctions pour la réservation
 function getPointsClient($conn, $client_num) {
     $sql = "SELECT cli_nb_points_ec, cli_nb_points_to 
             FROM sae.vik_client 
@@ -217,7 +217,7 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel) {
 
     // === 3. On insère le nouveau client ===
     $sqlInsert = "INSERT INTO sae.vik_client 
-                    (cli_num, cli_nom, cli_prenom, cli_email, cli_tel,
+                    (cli_num, cli_nom, cli_prenom, cli_courriel, cli_telephone,
                      cli_nb_points_ec, cli_nb_points_to) 
                   VALUES 
                     (:cli_num, :nom, :prenom, :email, :tel, 0, 0)";
