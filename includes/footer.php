@@ -16,30 +16,6 @@
             </div>
 
             <div class="col-lg-2 col-md-3 col-6">
-                <h6 class="text-white fw-semibold text-uppercase small mb-3">Gestion Réseau</h6>
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="col-lg-2 col-md-3 col-6">
-                <h6 class="text-white fw-semibold text-uppercase small mb-3">Base de données</h6>
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="col-lg-2 col-md-3 col-6">
                 <h6 class="text-white fw-semibold text-uppercase small mb-3">Projet</h6>
                 <ul class="list-unstyled mb-0">
                     <li class="mb-2">
