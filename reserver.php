@@ -57,7 +57,7 @@
                 // Calcul du tarif pour chaque segment (US6)
                 $prixTotal = 0;
                 foreach ($numLignes as $i => $ligne) {
-                    
+                    $dep = trim($comDeparts[$i]);
                     $arr = trim($comArrivees[$i]);
                     $tarif = GetTarifSegment($conn, trim($ligne), $dep, $arr);
                     if ($tarif !== false) {
