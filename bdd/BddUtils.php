@@ -36,13 +36,13 @@ function LireDonneesPDO3($conn, $sql, &$tab) {
 
 function ListeLignes($conn) {
     $cur = $conn->query("SELECT LIG_NUM, COM_CODE_INSEE_DEBU, COM_CODE_INSEE_TERM 
-                         FROM sae.vik_ligne ORDER BY LIG_NUM");
+                         FROM vik_ligne ORDER BY LIG_NUM");
     return $cur->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function ListeCommunesLignes($conn) {
     $cur = $conn->query("SELECT LIG_NUM, COM_CODE_INSEE_ARRET 
-                         FROM sae.vik_noeud 
+                         FROM vik_noeud 
                          ORDER BY LIG_NUM, COM_CODE_INSEE_ARRET");
     return $cur->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -53,7 +53,7 @@ function ListeCommunesLignes($conn) {
 
 function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
     try {
-        $sqlDist = "SELECT ETA_DISTANCE FROM sae.vik_etape
+        $sqlDist = "SELECT ETA_DISTANCE FROM vik_etape
                     WHERE LIG_NUM = :ligne
                       AND COM_CODE_INSEE_DEPART  = :depart
                       AND COM_CODE_INSEE_ARRIVEE = :arrivee
@@ -64,7 +64,7 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
         if (!$etape) return false;
 
         $sqlTarif = "SELECT TAR_NUM_TRANCHE, TAR_PRIX AS PRIX
-                     FROM sae.vik_tarif
+                     FROM vik_tarif
                      WHERE TAR_KM_MIN <= :distance
                        AND TAR_KM_MAX >= :distance
                      FETCH FIRST 1 ROWS ONLY";
@@ -79,7 +79,7 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
 
 function getTarifParDistance($conn, $distance) {
     $sql = "SELECT tar_num_tranche, tar_prix 
-            FROM sae.vik_tarif 
+            FROM vik_tarif 
             WHERE :dist BETWEEN tar_km_min AND tar_km_max";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['dist' => $distance]);
@@ -94,7 +94,7 @@ function getTarifParDistance($conn, $distance) {
 function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
     
     // 1. Cherche si l'email existe déjà
-    $sqlSelect = "SELECT cli_num FROM sae.vik_client 
+    $sqlSelect = "SELECT cli_num FROM vik_client 
                   WHERE UPPER(cli_courriel) = UPPER(:email)";
     $stmtSelect = preparerRequetePDO($conn, $sqlSelect);
     $stmtSelect->execute(['email' => $email]);
@@ -105,13 +105,13 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
     }
 
     // 2. Prochain cli_num
-    $sqlMax = "SELECT NVL(MAX(cli_num), 0) + 1 AS prochain FROM sae.vik_client";
+    $sqlMax = "SELECT NVL(MAX(cli_num), 0) + 1 AS prochain FROM vik_client";
     $stmtMax = preparerRequetePDO($conn, $sqlMax);
     $stmtMax->execute();
     $cli_num = $stmtMax->fetch(PDO::FETCH_ASSOC)['PROCHAIN'];
 
     // 3. Insert
-    $sqlInsert = "INSERT INTO sae.vik_client 
+    $sqlInsert = "INSERT INTO vik_client 
                     (cli_num, cli_nom, cli_prenom, cli_courriel, cli_telephone,
                      cli_nb_points_ec, cli_nb_points_to) 
                   VALUES 
@@ -129,7 +129,7 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
 }
 
 function ListeInfosClient($conn, $cli_num) {
-    $sql = "SELECT * FROM sae.vik_client WHERE cli_num = :num";
+    $sql = "SELECT * FROM vik_client WHERE cli_num = :num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['num' => $cli_num]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -137,7 +137,7 @@ function ListeInfosClient($conn, $cli_num) {
 
 function getPointsClient($conn, $client_num) {
     $sql = "SELECT cli_nb_points_ec, cli_nb_points_to 
-            FROM sae.vik_client WHERE cli_num = :cli_num";
+            FROM vik_client WHERE cli_num = :cli_num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['cli_num' => $client_num]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -151,7 +151,7 @@ function getPointsClient($conn, $client_num) {
 
 function getProchainResNum($conn, $client_num) {
     $sql = "SELECT NVL(MAX(res_num), 0) + 1 AS prochain 
-            FROM sae.vik_reservation 
+            FROM vik_reservation 
             WHERE cli_num = :cli_num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['cli_num' => $client_num]);
@@ -162,7 +162,7 @@ function getProchainResNum($conn, $client_num) {
 function reserver_ligne($conn, $client_num, $tar_num_tranche, $res_date, $res_nb_points, $res_prix_tot) {
     $res_num = getProchainResNum($conn, $client_num);
 
-    $sql = "INSERT INTO sae.vik_reservation 
+    $sql = "INSERT INTO vik_reservation 
                 (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot) 
             VALUES 
                 (:cli_num, :res_num, :tar_num, TO_DATE(:res_date,'YYYY-MM-DD'), :res_nb_points, :res_prix_tot)";
@@ -181,8 +181,8 @@ function reserver_ligne($conn, $client_num, $tar_num_tranche, $res_date, $res_nb
 }
 
 function HistoriqueReservationsClient($conn, $cli_num) {
-    $sql = "SELECT * FROM sae.vik_reservation 
-            JOIN sae.vik_client USING (cli_num) 
+    $sql = "SELECT * FROM vik_reservation 
+            JOIN vik_client USING (cli_num) 
             WHERE cli_num = :num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['num' => $cli_num]);

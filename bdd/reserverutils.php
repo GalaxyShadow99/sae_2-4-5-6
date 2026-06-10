@@ -81,7 +81,7 @@ function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel = null) {
     // 3. Insert
     $sqlInsert = "INSERT INTO sae.vik_client 
                     (cli_num, cli_nom, cli_prenom, cli_courriel, cli_telephone,
-                     cli_nb_points_ec, cli_nb_points_to) 
+                     cli_nb_points_ec, cli_nb_points_tot) 
                   VALUES 
                     (:cli_num, :nom, :prenom, :email, :tel, 0, 0)";
     $stmtInsert = preparerRequetePDO($conn, $sqlInsert);

@@ -57,7 +57,7 @@
                 // Calcul du tarif pour chaque segment (US6)
                 $prixTotal = 0;
                 foreach ($numLignes as $i => $ligne) {
-                    $dep = trim($comDeparts[$i]);
+                    
                     $arr = trim($comArrivees[$i]);
                     $tarif = GetTarifSegment($conn, trim($ligne), $dep, $arr);
                     if ($tarif !== false) {
@@ -84,10 +84,10 @@
                     $message     = 'Votre réservation a bien été enregistrée !' . $prixStr;
                     $messageType = 'success';
                 } catch (Exception $e) {
-                    $conn->rollBack();
-                    $message     = 'Une erreur est survenue lors de la réservation. Veuillez réessayer.';
-                    $messageType = 'danger';
-                }
+    $conn->rollBack();
+    $message     = 'Erreur : ' . $e->getMessage();
+    $messageType = 'danger';
+}
             }
         }
 
