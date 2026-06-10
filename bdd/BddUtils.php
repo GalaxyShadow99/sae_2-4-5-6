@@ -135,6 +135,27 @@ function ListeHorairesLigne($conn, $lig_num){
     return $tab;
 }
 
+function ProchainArret($conn,$lig_num){
+    $sql ="select noe1.com_code_insee_arret, noe1.noe_heure_passage from vik_noeud noe1
+            join vik_noeud noe2 using(lig_num)
+            where noe1.com_code_insee_suivant = noe2.com_code_insee_arret and noe1.com_code_insee_suivant not null and lig_num = :X;";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['X' => $lig_num]);
+    return $stmt->fetchColumn();
+}
+
+function ObtenirVillesOrdonnees($conn, $lig_num) {
+    $sql = "SELECT c.COM_CODE_INSEE, c.COM_NOM 
+            FROM vik_commune c
+            JOIN vik_noeud n ON c.COM_CODE_INSEE = n.COM_CODE_INSEE_ARRET
+            WHERE TRIM(n.LIG_NUM) = :lig_num
+            ORDER BY n.NOE_HEURE_PASSAGE ASC";
+            
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['lig_num' => $lig_num]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 //
 // fonctions en cours de dev, ne pas encore utiliser
 //
