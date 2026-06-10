@@ -1,0 +1,131 @@
+utils : update sae.vik_client set cli_date_connection = (select sysdate from dual) where cli_num = :Cli;
+
+1: select lig_num from sae.vik_ligne order by lig_num;
+
+2: select noe1.com_code_insee_arret, noe1.noe_heure_passage from vik_noeud noe1
+join vik_noeud noe2 using(lig_num)
+where noe1.com_code_insee_suivant = noe2.com_code_insee_arret and lig_num == :X;
+
+3: select tar_num_tranche from sae.vik_tarif
+where :Dist > tar_min_dist and :Dist <= tar_max_dist;
+
+insert into sae.vik_reservation(cli_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
+values(0, :Tarif, :Date, 0, :Tarif-prix);
+
+insert into sae.vik_etape(cli_num, res_num, lig_num, com_code_insee_depart, com_code_insee_arrivee, eta_distance, eta_heure)
+values(0, :Res, :Lig, :Dep, :Arr, :Dist, :Hor);
+
+4: same
+
+5: select tar_num_tranche from sae.vik_tarif
+where :Dist > tar_min_dist and :Dist <= tar_max_dist;
+
+insert into sae.vik_reservation(cli_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
+values(:Cli, :Tarif, :Date, :Points, :Tarif-prix);
+
+insert into sae.vik_etape (cli_num, res_num, lig_num, com_code_insee_depart, com_code_insee_arrivee, eta_distance, eta_heure)
+values(:Cli, :Res, :Lig, :Dep, :Jonc1, :Dist, :Hor),
+…
+…;
+
+select tar_prix from sae.vik_tarif
+join sae.vik_reservation using(tar_num_tranche)
+where res_num = :Res;
+
+6: same
+
+7: 
+
+8: select typ_num from sae.vik_type_client
+where typ_nom = 'fidélisé';
+
+select dep_num from sae.vik_departement
+where dep_nom = :Dep;
+
+insert into vik_client values(:Type, :Dep, :Nom, :Pre, :Ville, :Tel, :Mail, 0, 0, :Date)
+
+9: select * from sae.vik_client
+where cli_num = :Cli;
+
+select * from sae.vik_reservation
+where cli_num = :Cli;
+
+update sae.vik_client set dep_num = :Dep, cli_nom = :Nom, cli_prenom = :Pre, cli_ville = :Ville, cli_telephone :Tel, cli_courriel = :Mail
+where cli_num = :Cli;
+
+10: 
+
+11: 
+
+12: select * from sae.vik_client;
+
+select * from sae.vik_reservation
+where cli_num = :Cli;
+
+13: select typ_num from sae.vik_type_client;
+
+update sae.vik_client set typ_num = :Type, dep_num = :Dep, cli_nom = :Nom, cli_prenom = :Pre, cli_ville = :Ville, cli_telephone :Tel, cli_courriel = :Mail
+where cli_num = :Cli;
+
+delete from sae.vik_client where cli_num = :Cli;
+
+14: select * from sae.vik_client
+where (sysdate - cli_date_connection) > 365;
+
+15: 
+
+16: select om_code_insee_arret, com_code_insee_suivant from sae.vik_noeud;
+
+graphe = {}
+for items in result:
+	if items[1] in graphe:
+		graphe[[items[1]]] = [items[2]]
+	else :
+		graphe[[items[1]]] += [items[2]}]
+
+def parcoursProf(graphe, arret, arrivee, chemin, résultats):
+	chemin += [arret]
+
+	if arret == arrivee:
+		résultats.append(chemin)
+		return résultats
+
+	if arret not in graphe:
+		return résultats
+
+	for suivant in graphe[arret]:
+		if suivant not in chemin:
+			parcoursProf(graphe, suivant, arrivee, chemin, résultats)
+
+	return résultats
+
+chemins = parcoursProf(graphe, :Dep, :Arr, [], [])
+
+pour chaque nœud de chaque chemin (récupère les lignes correspondantes si besoin) :
+select lig_num from sae.vik_noeud
+where com_code_insee_arret = :ComArr and com_code_insee_suivant = :ComSui;
+
+17: same +
+
+select noe_heure_passage from sae.vik_noeud
+where com_code_insee_arret = :Depart
+
+transforme en min et ajoute la somme des :
+select noe_duree_prochain from sae.vik_noeud
+where com_code_insee_arret = :ComArr and com_code_insee_suivant = :ComSui;
+
+tu connais heure de départ et heure d'arrivée
+
+18: pour chaque chemin, somme des :
+select noe_duree_prochain from sae.vik_noeud
+where com_code_insee_arret = :ComArr and com_code_insee_suivant = :ComSui;
+
+et tu regardes le minimum pour chaque
+
+19: same mais noe_distance_prochain à la place de noe_duree_prochain
+
+20: same que 18 et 19 mais sans le minimum et en créant un array de dictionnaires (chemin, temps/distance)
+utilise l'algo de tri selon le temps/distance
+
+21: update sae.vik_noeud set com_code_insee_suivant = :ComSui, noe_horaire_passage = :Hor
+where lig_num = :Lig and com_code_insee_arret = :ComArr;
