@@ -48,7 +48,7 @@ function ListeLignes($conn){
 }
 
 function RecupereVille($conn,$code_insee){
-    $sql = "SELECT * FROM vik_commune WHERE com_code_insee = :num";
+    $sql = "SELECT com_nom FROM vik_commune WHERE com_code_insee = :num";
     $stmt = preparerRequetePDO($conn, $sql);
     $stmt->execute(['num' => $code_insee]);
     return $stmt->fetchColumn();
@@ -128,11 +128,10 @@ function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrive
 //
 function ListeHorairesLigne($conn, $lig_num){
     $cur = $conn->query("
-                        SELECT COM_CODE_INSEE_DEPART, COM_CODE_INSEE_ARRIVEE, 
-                        ETA_HEURE, ETA_DISTANCE 
-                         FROM VIK_ETAPE 
-                         WHERE LIG_NUM = '$lig_num' 
-                         ORDER BY ETA_HEURE ASC
+                        SELECT COM_CODE_INSEE_ARRET, TO_CHAR(NOE_HEURE_PASSAGE, 'HH24:MI') AS NOE_HEURE_PASSAGE 
+                         FROM VIK_NOEUD 
+                         WHERE LIG_NUM = '$lig_num'
+                         order by noe_heure_passage
     ");
     $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
     return $tab;
