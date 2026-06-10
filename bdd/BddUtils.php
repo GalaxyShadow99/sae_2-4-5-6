@@ -118,26 +118,23 @@ function userAllowed($conn,$adresseMailClient , $userPassword){
     
     return $tab;
 }
-function reserver_ligne($conn,$client_num,$res_num,$tar_num_tranche,$res_date,$res_nb_points,$res_prix_tot){
-  $sql = "insert into vik_reservation(cli_num,res_num,tar_num,res_date,res_nb_points,res_prix_tot) 
-    values(:cli_num,:res_num,:tar_num,:res_date,res_nb_points,res_prix_tot);";
 
 
+function reserver_ligne($conn, $client_num, $res_num, $tar_num_tranche, $res_date, $res_nb_points, $res_prix_tot) {
+    $sql = "INSERT INTO sae.vik_reservation 
+                (cli_num, res_num, tar_num, res_date, res_nb_points, res_prix_tot) 
+            VALUES 
+                (:cli_num, :res_num, :tar_num, :res_date, 0, :res_prix_tot)";
 
-  $stmt preparerRequetePDO($conn,$sql);
-  $stmt -> execute([
-    'cli_num' : $client_num,
-    'res_num': $res_num,
-    'tar_num': $tar_num_tranche,
-    'res_date': $res_date,
-    'res_nb_points' : $res_nb_points,
-    'res_prix_tot' : $res_prix_tot
-
-  ]);
-
-
-
-
+    $stmt = preparerRequetePDO($conn, $sql);
+    return $stmt->execute([
+        'cli_num'       => $client_num,
+        'res_num'       => $res_num,
+        'tar_num'       => $tar_num_tranche,
+        'res_date'      => $res_date, 
+        'res_prix_tot'  => $res_prix_tot
+    ]);
 }
+
 
 ?>

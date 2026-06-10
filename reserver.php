@@ -13,7 +13,14 @@
      <?php
         require_once './bdd/env.php';
         require_once './bdd/BddUtils.php';
- 
+       
+$ok = reserver_ligne($conn, 12, 105, 3, '2025-01-15', 50, 89.90);
+if ($ok) {
+    echo "Réservation enregistrée !";
+} else {
+    echo "Erreur lors de la réservation.";
+} 
+
         define('MOD_BDD', 'ORACLE');
         $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
  
