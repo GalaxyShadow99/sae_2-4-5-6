@@ -1,34 +1,79 @@
-<footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 my-5 border-top footer mt-auto py-3 ">
+<footer class="bg-dark text-white-50 mt-5 py-5 border-top border-secondary border-opacity-25">
+    <div class="container">
 
-<div class="col mb-3">
-    <h6 class="text-primary">SAÉ S2.04-05-06</h6>
-    <p class="text-muted small">© 2026 — BUT Informatique</p>
-</div>
+        <div class="row gy-4">
 
-<div class="col mb-3"></div>
+            <div class="col-lg-4 col-md-12">
+                <h4 class="text-white fw-bold text-uppercase tracking-wider mb-3">
+                    Viking Transport
+                </h4>
+                <p class="text-white-50 mb-2 small">
+                    SAÉ S2.04-05-06 — BUT Informatique
+                </p>
+                <p class="small text-white-50">
+                    &copy; 2026 Tous droits réservés.
+                </p>
+            </div>
 
-<div class="col mb-3">
-    <h5>Gestion Réseau</h5>
-    <ul class="nav flex-column">
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    </ul>
-</div>
+            <div class="col-lg-2 col-md-3 col-6">
+                <h6 class="text-white fw-semibold text-uppercase small mb-3">Gestion Réseau</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
+                    </li>
+                </ul>
+            </div>
 
-<div class="col mb-3">
-    <h5>Base de Données</h5>
-    <ul class="nav flex-column">
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    </ul>
-</div>
+            <div class="col-lg-2 col-md-3 col-6">
+                <h6 class="text-white fw-semibold text-uppercase small mb-3">Base de données</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Test</a>
+                    </li>
+                </ul>
+            </div>
 
-<div class="col mb-3">
-    <h5>Projet Équipe</h5>
-    <ul class="nav flex-column">
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">Lien Placeholder</a></li>
-    </ul>
-</div>
+            <div class="col-lg-2 col-md-3 col-6">
+                <h6 class="text-white fw-semibold text-uppercase small mb-3">Projet</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Documentation</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Équipe</a>
+                    </li>
+                </ul>
+            </div>
 
+            <div class="col-lg-2 col-md-3 col-6">
+                <h6 class="text-white fw-semibold text-uppercase small mb-3">Liens utiles</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Accueil</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-reset text-decoration-none opacity-75 opacity-100-hover transition">Contact</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <hr class="my-4 border-secondary opacity-25">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-white-50">
+            <span class="mb-2 mb-md-0">Viking Transport — Application de gestion du réseau de transport urbain</span>
+            <div class="d-flex gap-3">
+                <a href="#" class="text-reset text-decoration-none opacity-50 opacity-100-hover"><i class="bi bi-github"></i></a>
+                <a href="#" class="text-reset text-decoration-none opacity-50 opacity-100-hover"><i class="bi bi-globe"></i></a>
+            </div>
+        </div>
+
+    </div>
 </footer>
