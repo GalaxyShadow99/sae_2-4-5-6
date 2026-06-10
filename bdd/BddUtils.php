@@ -9,7 +9,7 @@ function OuvrirConnexionPDO($db, $db_username, $db_password) {
         $conn = new PDO($db, $db_username, $db_password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } catch (PDOException $erreur) {
-        echo "Erreur connexion : " . $erreur->getMessage();
+        //echo "Erreur connexion : " . $erreur->getMessage();
         $conn = null;
     }
     return $conn;
@@ -25,6 +25,7 @@ function VillesParLigne($conn, $num_ligne) {
             JOIN vik_noeud n ON c.com_code_insee = n.com_code_insee
             WHERE n.lig_num = :ligne
             ORDER BY n.noe_num ASC"; 
+    $stmt = $conn->prepare($sql);
     $stmt->execute(['ligne' => $num_ligne]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
