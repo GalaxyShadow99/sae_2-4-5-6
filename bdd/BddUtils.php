@@ -128,20 +128,111 @@ function userAllowed($conn, $adresseMailClient, $userPassword) {
 }
 
 
-function reserver_ligne($conn, $client_num, $res_num, $tar_num_tranche, $res_date, $res_nb_points, $res_prix_tot) {
+
+
+
+function getProchainResNum($conn, $client_num) {
+    $sql = "SELECT NVL(MAX(res_num), 0) + 1 AS prochain 
+            FROM sae.vik_reservation 
+            WHERE cli_num = :cli_num";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['cli_num' => $client_num]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row['PROCHAIN']; // Oracle remonte les noms en majuscules
+}
+
+
+
+function getTarifParDistance($conn, $distance) {
+    $sql = "SELECT tar_num_tranche, tar_prix 
+            FROM sae.vik_tarif 
+            WHERE :dist BETWEEN tar_min_dist AND tar_max_dist";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['dist' => $distance]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+
+
+
+
+function getPointsClient($conn, $client_num) {
+    $sql = "SELECT cli_nb_points_ec, cli_nb_points_to 
+            FROM sae.vik_client 
+            WHERE cli_num = :cli_num";
+    $stmt = preparerRequetePDO($conn, $sql);
+    $stmt->execute(['cli_num' => $client_num]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+
+function reserver_ligne($conn, $client_num, $tar_num_tranche, $res_date, $res_nb_points, $res_prix_tot) {
+    $res_num = getProchainResNum($conn, $client_num);
+
     $sql = "INSERT INTO sae.vik_reservation 
-                (cli_num, res_num, tar_num, res_date, res_nb_points, res_prix_tot) 
+                (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot) 
             VALUES 
-                (:cli_num, :res_num, :tar_num, :res_date, 0, :res_prix_tot)";
+                (:cli_num, :res_num, :tar_num, TO_DATE(:res_date,'YYYY-MM-DD'), :res_nb_points, :res_prix_tot)";
 
     $stmt = preparerRequetePDO($conn, $sql);
-    return $stmt->execute([
+    $ok = $stmt->execute([
         'cli_num'       => $client_num,
         'res_num'       => $res_num,
         'tar_num'       => $tar_num_tranche,
-        'res_date'      => $res_date, 
+        'res_date'      => $res_date,
+        'res_nb_points' => $res_nb_points,
         'res_prix_tot'  => $res_prix_tot
     ]);
+
+    return $ok ? $res_num : false;
+}
+
+
+
+function trouverOuCreerClient($conn, $nom, $prenom, $email, $tel) {
+    
+    // === 1. On cherche si l'email existe déjà ===
+    $sqlSelect = "SELECT cli_num 
+                  FROM sae.vik_client 
+                  WHERE UPPER(cli_courriel) = UPPER(:email)";
+    
+    $stmtSelect = preparerRequetePDO($conn, $sqlSelect);
+    $stmtSelect->execute(['email' => $email]);
+    $row = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+
+    // Si on a trouvé → on retourne son cli_num existant
+    if ($row) {
+        return $row['CLI_NUM'];
+    }
+
+    // === 2. Sinon, on récupère le prochain cli_num ===
+    $sqlMax = "SELECT NVL(MAX(cli_num), 0) + 1 AS prochain 
+               FROM sae.vik_client";
+    
+    $stmtMax = preparerRequetePDO($conn, $sqlMax);
+    $stmtMax->execute();
+    $cli_num = $stmtMax->fetch(PDO::FETCH_ASSOC)['PROCHAIN'];
+
+    // === 3. On insère le nouveau client ===
+    $sqlInsert = "INSERT INTO sae.vik_client 
+                    (cli_num, cli_nom, cli_prenom, cli_email, cli_tel,
+                     cli_nb_points_ec, cli_nb_points_to) 
+                  VALUES 
+                    (:cli_num, :nom, :prenom, :email, :tel, 0, 0)";
+    
+    $stmtInsert = preparerRequetePDO($conn, $sqlInsert);
+    $ok = $stmtInsert->execute([
+        'cli_num' => $cli_num,
+        'nom'     => $nom,
+        'prenom'  => $prenom,
+        'email'   => $email,
+        'tel'     => $tel
+    ]);
+
+    // === 4. On retourne le cli_num (ou false si échec) ===
+    return $ok ? $cli_num : false;
 }
 
 
