@@ -27,19 +27,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
             </head>
             <body>
-                <div class="container mt-5" style="max-width:400px;">
-                    <h2 class="mb-3">Connexion</h2>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" disabled>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mot de passe</label>
-                        <input type="password" class="form-control" disabled>
-                    </div>
-                    <button class="btn btn-primary w-100" disabled>Se connecter</button>
-                </div>
 
+                <h1 class="text-center"> Bienvenu cher utilisateur </h1>    
+            
                 <div style="
                     position: fixed;
                     bottom: 30px;

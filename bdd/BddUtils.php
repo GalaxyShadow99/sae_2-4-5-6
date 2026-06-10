@@ -117,13 +117,6 @@ function ListeHorairesLigne($conn, $lig_num){
 // fonctions en cours de dev, ne pas encore utiliser
 //
 
-function userAllowed($conn,$adresseMailClient , $userPassword){
-
-    $cur = $conn->query("select * from vik_ligne");
-    $tab = $cur->fetchAll(PDO::FETCH_ASSOC);
-    return $tab;
-}
-
 function userAllowed($conn, $adresseMailClient, $userPassword){
     $sql = "SELECT * FROM vik_client WHERE CLI_COURRIEL = :email";
     $stmt = preparerRequetePDO($conn, $sql);
