@@ -4,7 +4,7 @@ require_once __DIR__ . '/BddConnexionUtils.php';
 function MeilleursClients($conn) {
     $sql = "SELECT c.cli_nom, c.cli_prenom, c.cli_nb_points_tot, COUNT(r.res_num) as nb_reservations
             FROM vik_client c
-            JOIN vik_reservation r USING(cli_num)
+            JOIN vik_reservation r ON c.cli_num = r.cli_num
             GROUP BY c.cli_num, c.cli_nom, c.cli_prenom, c.cli_nb_points_tot
             ORDER BY nb_reservations DESC
             FETCH FIRST 10 ROWS ONLY";
