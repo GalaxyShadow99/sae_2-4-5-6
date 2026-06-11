@@ -50,7 +50,7 @@ include_once("./bdd/BddLigneUtils.php");
                         <thead class="table-light text-uppercase fs-7 fw-bold text-secondary border-bottom">
                             <tr>
                                 <th scope="col" class="ps-4 py-3" style="width: 25%;">N° Ligne</th>
-                                <th scope="col" class="py-3">DéPART</th>
+                                <th scope="col" class="py-3">DÉPART</th>
                                 <th scope="col" class="py-3">TERMINUS</th>
                             </tr>
                         </thead>

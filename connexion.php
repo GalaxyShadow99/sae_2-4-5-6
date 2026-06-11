@@ -2,19 +2,19 @@
 if (session_status() === PHP_SESSION_NONE){
   session_start();  
 }
-//chargements de outils de connexion et des requêtes necessaires
+//chargements de outils de connexion et des requêtes nécessaires
 require_once './bdd/env.php';
 require_once './bdd/BddClientUtils.php';
 //variable en cas d'erreurs
 $message_erreur = "";
 $success = $_SESSION['login_success'] ?? '';
 unset($_SESSION['login_success']);
-// vérification si la page est chargé suite au clic sur le  bouton se connecter
+// vérification si la page est chargée suite au clic sur le  bouton se connecter
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // connexion a la base de donnée oracle configuré dans env.php
     $conn = OuvrirConnexionPDO ($dbOracle, $db_usernameOracle, $db_passwordOracle);
     if ($conn) {
-        // apppel de la fonction  userAllow avec l'email et le mot de passe saisi
+        // appel de la fonction  userAllow avec l'email et le mot de passe saisi
         $client = userAllowed($conn, $_POST['email'], $_POST['mot_de_passe']);
         // si les identifiants sont bon on stock l'id, le prenom dans le session du serv
         if ($client) {

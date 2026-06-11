@@ -162,7 +162,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 
         <?php 
         // ==========================================
-        // VUE 1 : RESERVATION REUSSIE (TICKET VERT)
+        // VUE 1 : RESERVATION RÉUSSIE (TICKET VERT)
         // ==========================================
         if ($reservationReussie): 
         ?>
@@ -183,7 +183,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 
         <?php 
         // ==========================================
-        // VUE 2 : RECAPITULATIF (CARTE JAUNE)
+        // VUE 2 : RÉCAPITULATIF (CARTE JAUNE)
         // ==========================================
         elseif ($afficherRecap): 
         ?>

@@ -42,7 +42,7 @@ if ($cli_num !== null && $cli_num !== 0 && $conn) {
                         <div class="text-success display-1 mb-3">
                             <i class="bi bi-person-check"></i>
                         </div>
-                        <p class="mb-0 fs-5 fw-medium text-secondary">Le compte client à bien été supprimé.</p>
+                        <p class="mb-0 fs-5 fw-medium text-secondary">Le compte client a bien été supprimé.</p>
                     </div>
                     <div class="modal-footer justify-content-center border-0 pb-4">
                         <a href="admin_client.php" class="btn btn-success px-4 rounded-3 fw-semibold shadow-sm">

@@ -106,6 +106,7 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
     }
 }
 
+
 function trouverOuCreerClient($conn, $nom, $prenom, $email) {
     $sqlSelect = "SELECT cli_num FROM vik_client WHERE UPPER(cli_courriel) = UPPER(:email)";
     $stmtSelect = preparerRequetePDO($conn, $sqlSelect);
