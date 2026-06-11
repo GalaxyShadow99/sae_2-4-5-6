@@ -229,7 +229,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 
         <?php elseif ($afficherRecap): ?>
             <div class="row justify-content-center mt-4">
-                <div class="col-md-8">
+                <div class="col-md-8 mb-3">
                     <div class="card shadow-sm border-warning">
                         <div class="card-header bg-warning text-dark">
                             <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Vérifiez votre réservation</h5>
@@ -353,13 +353,13 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Arrêt de départ *</label>
+                                            <label class="form-label">Départ *</label>
                                             <select class="form-select select-depart" name="Com_depart[]" required data-selected="<?= $sDep ?>">
                                                 <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Arrêt d'arrivée *</label>
+                                            <label class="form-label">Arrivée *</label>
                                             <select class="form-select select-arrivee" name="Com_arrivee[]" required data-selected="<?= $sArr ?>">
                                                 <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                             </select>

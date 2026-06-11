@@ -97,7 +97,10 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
                      FETCH FIRST 1 ROWS ONLY";
                      
         $stmtTarif = preparerRequetePDO($conn, $sqlTarif);
-        $stmtTarif->execute(['distance' => $distanceFinale]);
+        
+        // CORRECTION : On arrondit au nombre entier supérieur pour éviter les "trous" entre 10 et 11, 20 et 21, etc.
+        $distanceArrondie = ceil($distanceFinale); 
+        $stmtTarif->execute(['distance' => $distanceArrondie]);
         
         $resultat = $stmtTarif->fetch(PDO::FETCH_ASSOC);
         if ($resultat) {
