@@ -68,7 +68,9 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $tarifsCalcules = $_SESSION['tarifs_temp'];
                 $prixTotal = $_SESSION['prix_total_temp'];
 
+                // LA LIGNE QUI CORRIGE TON ERREUR ORANGE EST CELLE-CI :
                 $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
+                
                 $pointsGagnesTotal = floor($distanceTotale / 10);
 
                 // --- GESTION DE LA REDUCTION (SYSTÈME DE PALIERS) ---
@@ -79,14 +81,12 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $reductionTotale = 0;
 
                 if ($utiliserPoints) {
-                    // Calcul de la valeur maximale que le client peut tirer de ses points
                     $max_reduction = floor($pointsDispos / 1000) * 15 + floor(($pointsDispos % 1000) / 500) * 7 + floor(($pointsDispos % 500) / 100) * 1;
                     
                     if ($prixTotal >= $max_reduction) {
                         $reductionTotale = $max_reduction;
                         $pointsUtilisesTotaux = floor($pointsDispos / 100) * 100; 
                     } else {
-                        // Optimisation : On cherche la dépense de points MINIMALE pour un prix à 0€
                         $meilleur_points = $pointsDispos;
                         $max_1000 = floor($pointsDispos / 1000);
                         
@@ -116,6 +116,9 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         $arr = trim($comArrivees[$i]);
                         $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
                         $prix = $tarifsCalcules[$i]['PRIX'] ?? 0;
+                        
+                        // ON RÉCUPÈRE LA DISTANCE DU SEGMENT
+                        $distanceSegment = $tarifsCalcules[$i]['DISTANCE'] ?? 0;
 
                         // Application de la réduction sur le premier segment
                         if ($i === 0 && $reductionTotale > 0) {
@@ -125,10 +128,11 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         $pointsPourCeSegment = ($i === 0) ? $pointsGagnesTotal : 0;
                         $pointsDepensesCeSegment = ($i === 0) ? $pointsUtilisesTotaux : 0;
                         
+                        // ON ENVOIE TOUTES LES INFOS À LA BASE DE DONNÉES !
                         if($estConnecte) {
-                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix, $pointsPourCeSegment, $pointsDepensesCeSegment);
+                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix, $pointsPourCeSegment, $pointsDepensesCeSegment, trim($ligne), $dep, $arr, $distanceSegment);
                         } else {
-                            $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
+                            $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix, $distanceSegment);
                         }
                         if (!$ok) throw new Exception('Échec insertion segment ' . ($i + 1));
                     }
@@ -142,7 +146,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     $message = 'Erreur : ' . $e->getMessage();
                     $messageType = 'danger';
                 }
-            } 
+            }
 
             // ETAPE 1 : VERIFICATION DES CHAMPS (Bouton Réserver cliqué)
             else {
