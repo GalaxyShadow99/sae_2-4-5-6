@@ -11,7 +11,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 <?php include_once("./includes/head.php"); ?>
 <?php include_once("./bdd/BddLigneUtils.php"); ?>
 
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container mt-4">
@@ -353,13 +353,13 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Arrêt de départ *</label>
-                                            <select class="form-select select-depart" name="Com_depart[]" required data-selected="<?= $sDep ?>">
+                                            <label class="form-label">Départ *</label>
+                                           <select class="form-select select-depart" name="Com_depart[]" required data-selected="<?= $sDep ?>">
                                                 <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                             </select>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Arrêt d'arrivée *</label>
+                                            <label class="form-label">Arrivée *</label>
                                             <select class="form-select select-arrivee" name="Com_arrivee[]" required data-selected="<?= $sArr ?>">
                                                 <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                             </select>
@@ -483,13 +483,13 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Arrêt de départ *</label>
+                                <label class="form-label">Départ *</label>
                                 <select class="form-select select-depart" name="Com_depart[]" required>
                                     <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Arrêt d'arrivée *</label>
+                                <label class="form-label">Arrivée *</label>
                                 <select class="form-select select-arrivee" name="Com_arrivee[]" required>
                                     <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                 </select>

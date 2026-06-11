@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 include_once("./includes/head.php"); 
 ?>
 
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container mt-4">

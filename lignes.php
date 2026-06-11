@@ -6,7 +6,7 @@ include_once("./bdd/BddLigneUtils.php");
 <!DOCTYPE html>
 <html lang="fr">
 <?php include_once("./includes/head.php"); ?>
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container pt-3">

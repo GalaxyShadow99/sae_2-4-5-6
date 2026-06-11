@@ -87,7 +87,7 @@ $erreur = isset($_GET['msg']) && $_GET['msg'] === 'err' ? "Une erreur s'est prod
 .table thead th { background: #222; color: #fff; font-size: 13px; }
 </style>
 
-<body>
+<body class="bg-light">
 <?php include_once("./includes/topbar.php"); ?>
 
 <main class="container mt-4 mb-5">

@@ -56,7 +56,7 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
     .table-viking thead { background-color: #2c3e50; color: white; }
 </style>
 
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container mt-5">
@@ -69,14 +69,14 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
 
             <div class="card shadow-sm">
                 <div class="card-header fw-semibold" style="background-color:#2c3e50; color:white;">
-                    Grille horaire
+                    Grille des horaires
                 </div>
                 <div class="card-body p-0">
                         <?php if (empty($horaires) && $is_terminus): ?>
                             <div class="alert alert-info m-3">Cet arrêt est un terminus — changez de direction pour voir les prochains départs.</div>
                         <?php else: ?>
                             <?php if (empty($horaires)): ?>
-                                <div class="alert alert-warning m-3">Aucun horaire trouvé pour cet arrêt.</div>
+                                <div class="alert alert-warning m-3">Aucuns horaires trouvés pour cet arrêt.</div>
                             <?php endif; ?>
                         <table class="table table-striped table-hover mb-0 table-viking">
                             <thead>

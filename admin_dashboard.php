@@ -19,7 +19,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
 include_once("./includes/head.php");
 ?>
 
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container my-5 flex-shrink-0">

@@ -75,6 +75,12 @@ if (isset($_SESSION['user_id'])) {
                                 <i class="bi bi-map-fill me-2 opacity-75"></i>Carte interactive
                             </a>
                         </li>
+                        <li>
+                            <a class="dropdown-item py-2 px-3 transition" href="tarifs.php">
+                                <i class="bi bi-map-fill me-2 opacity-75"></i>Tarifs
+                            </a>
+                        </li>
+
                     </ul>
                 </li>
             </ul>

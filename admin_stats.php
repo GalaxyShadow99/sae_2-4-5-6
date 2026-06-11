@@ -66,7 +66,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
     }
 </style>
 
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container mt-4 mb-5">

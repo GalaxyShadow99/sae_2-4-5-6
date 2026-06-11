@@ -327,16 +327,16 @@ $conn = null;
     }
 </style>
 
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <div id="map-container">
         <!-- Carte Leaflet -->
         <div id="map"></div>
 
-        <!-- Bouton réouvrir panneau -->
+        <!-- Bouton rouvrir panneau -->
         <button id="btn-toggle-panel" onclick="ouvrirPanelVide()">
-            🗺️ Réserver via la carte
+            Réserver via la carte
         </button>
 
         <!-- Légende -->
@@ -361,7 +361,7 @@ $conn = null;
         <div id="panel-reservation" class="panel-hidden">
             <div id="panel-header">
                 <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                    <span id="panel-ligne-badge" class="ligne-badge">—</span>
+                    <span id="panel-ligne-badge" class="ligne-badge">-</span>
                     <h2 id="panel-titre">Réserver un voyage</h2>
                 </div>
                 <button id="btn-fermer-panel" onclick="fermerPanel()" title="Fermer">×</button>
@@ -371,12 +371,12 @@ $conn = null;
                 <!-- Info de la ligne -->
                 <div id="ligne-info-strip">
                     <div style="font-weight:700; font-size:0.97rem; margin-bottom:4px;">
-                        <span id="info-depart-nom">—</span>
+                        <span id="info-depart-nom">-</span>
                         <span class="trajet-arrow"> → </span>
-                        <span id="info-arrivee-nom">—</span>
+                        <span id="info-arrivee-nom">-</span>
                     </div>
-                    <span id="info-nb-arrets" class="badge-arrets">— arrêts</span>
-                    <span style="margin-left:8px; color:#6c757d; font-size:0.82rem;" id="info-distance">—</span>
+                    <span id="info-nb-arrets" class="badge-arrets">- arrêts</span>
+                    <span style="margin-left:8px; color:#6c757d; font-size:0.82rem;" id="info-distance">-</span>
                 </div>
 
                 <div id="panel-result"></div>
@@ -406,7 +406,7 @@ $conn = null;
                         <label class="form-label">Téléphone *</label>
                         <input type="text" class="form-control" name="telephone" id="input-tel"
                             value="<?= htmlspecialchars($infoClient['cli_telephone'] ?? '') ?>"
-                            placeholder="0612345678" maxlength="14" required>
+                             maxlength="14" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email *</label>
@@ -420,7 +420,7 @@ $conn = null;
                     <div class="mb-2">
                         <label class="form-label">Ligne</label>
                         <select class="form-select" id="select-ligne-panel" onchange="onLigneChange(this.value)">
-                            <option value="">— Sélectionnez une ligne —</option>
+                            <option value="">- Sélectionnez une ligne -</option>
                             <?php foreach ($lignes as $l):
                                 $num = trim($l['LIG_NUM']);
                                 $dep = $l['COM_NOM_DEBU'] ?: $l['COM_CODE_INSEE_DEBU'];
@@ -434,16 +434,16 @@ $conn = null;
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label">Arrêt de départ *</label>
+                        <label class="form-label">Départ *</label>
                         <select class="form-select" id="select-depart-panel" required>
-                            <option value="" disabled selected>— Choisir d'abord une ligne —</option>
+                            <option value="" disabled selected>- Choisir d'abord une ligne -</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Arrêt d'arrivée *</label>
+                        <label class="form-label">Arrivée *</label>
                         <select class="form-select" id="select-arrivee-panel" required>
-                            <option value="" disabled selected>— Choisir d'abord une ligne —</option>
+                            <option value="" disabled selected>- Choisir d'abord une ligne -</option>
                         </select>
                     </div>
 
@@ -455,7 +455,7 @@ $conn = null;
                     </div>
                     <?php else: ?>
                     <div class="alert alert-success py-2 px-3 mb-3" style="font-size:0.85rem;">
-                        ✓ Connecté — vous gagnerez des points fidélité sur cette réservation.
+                         Connecté - vous gagnerez des points fidélité sur cette réservation.
                     </div>
                     <?php endif; ?>
 
@@ -463,7 +463,7 @@ $conn = null;
                         Réserver ce trajet →
                     </button>
                     <a id="btn-voir-horaires" href="horaires.php" target="_blank">
-                        📅 Voir les horaires de cette ligne
+                        Voir les horaires de cette ligne
                     </a>
 
                     <p style="font-size:0.75rem; color:#adb5bd; margin-top:10px;">* Champs obligatoires</p>
@@ -752,11 +752,11 @@ $conn = null;
     }
 
     function ouvrirPanelVide() {
-        document.getElementById('panel-ligne-badge').textContent = '—';
+        document.getElementById('panel-ligne-badge').textContent = '-';
         document.getElementById('panel-titre').textContent = 'Réserver un voyage';
-        document.getElementById('info-depart-nom').textContent = '—';
-        document.getElementById('info-arrivee-nom').textContent = '—';
-        document.getElementById('info-nb-arrets').textContent = '—';
+        document.getElementById('info-depart-nom').textContent = '-';
+        document.getElementById('info-arrivee-nom').textContent = '-';
+        document.getElementById('info-nb-arrets').textContent = '-';
         document.getElementById('panel-reservation').classList.remove('panel-hidden');
         document.getElementById('btn-toggle-panel').classList.remove('visible');
     }
@@ -784,8 +784,8 @@ $conn = null;
         const selDep = document.getElementById('select-depart-panel');
         const selArr = document.getElementById('select-arrivee-panel');
 
-        selDep.innerHTML = '<option value="" disabled selected>— Choisir un arrêt —</option>';
-        selArr.innerHTML = '<option value="" disabled selected>— Choisir un arrêt —</option>';
+        selDep.innerHTML = '<option value="" disabled selected>- Choisir un arrêt -</option>';
+        selArr.innerHTML = '<option value="" disabled selected>- Choisir un arrêt -</option>';
 
         const arretsLigne = COMMUNES_BDD.filter(c => (c['LIG_NUM'] || '').trim() === numLigne);
         const departs  = optionsUniques(arretsLigne, 'COM_CODE_INSEE_DEPART',  'COM_NOM_DEPART');
@@ -846,7 +846,6 @@ $conn = null;
         if (!arr) { alert('Veuillez sélectionner un arrêt d\'arrivée.'); return false; }
         if (dep === arr) { alert('L\'arrêt de départ et d\'arrivée ne peuvent pas être identiques.'); return false; }
 
-        // Mettre à jour les hidden inputs juste avant submit
         document.getElementById('hidden-ligne').value   = lig;
         document.getElementById('hidden-depart').value  = dep;
         document.getElementById('hidden-arrivee').value = arr;
@@ -854,19 +853,11 @@ $conn = null;
         return true;
     }
 
-    // ===================================================================
-    // RECHERCHE PAR COMMUNE (optionnel, bonus)
-    // ===================================================================
-    // Si on clique sur un marqueur, on filtre les lignes passant par cette commune
     Object.values(communeMarkers).forEach(marker => {
-        // (déjà géré par les tooltips)
     });
 
-    // Ajustement responsive
     window.addEventListener('resize', () => { map.invalidateSize(); });
 
-    // Afficher le bouton toggle si le panneau est fermé au démarrage
-    // (on montre d'abord le bouton, le panneau s'ouvre au 1er clic sur une ligne)
     document.getElementById('btn-toggle-panel').classList.add('visible');
     </script>
 </body>
