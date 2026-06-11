@@ -25,7 +25,54 @@ function ReservationsParPeriode($conn) {
     $sql = "SELECT TO_CHAR(res_date, 'MM/YYYY') as periode, COUNT(*) as nb_reservations
             FROM vik_reservation
             GROUP BY TO_CHAR(res_date, 'MM/YYYY')
-            ORDER BY MIN(res_date) ASC";
+            ORDER BY MIN(res_date) DESC";
+    LireDonneesPDO3($conn, $sql, $tab);
+    return $tab;
+}
+
+function ChiffreAffairesTotal($conn) {
+    $sql = "SELECT SUM(res_prix_tot) as total FROM vik_reservation";
+    LireDonneesPDO3($conn, $sql, $tab);
+    return $tab[0]['TOTAL'];
+}
+
+function ChiffreAffairesParLigne($conn) {
+    $sql = "SELECT e.lig_num, SUM(r.res_prix_tot) as ca_total
+            FROM vik_reservation r
+            JOIN vik_etape e ON r.cli_num = e.cli_num AND r.res_num = e.res_num
+            GROUP BY e.lig_num
+            ORDER BY ca_total DESC";
+    LireDonneesPDO3($conn, $sql, $tab);
+    return $tab;
+}
+
+function ClientsPlusDePoints($conn) {
+    $sql = "SELECT cli_nom, cli_prenom, cli_nb_points_ec, cli_nb_points_tot
+            FROM vik_client
+            ORDER BY cli_nb_points_tot DESC
+            FETCH FIRST 10 ROWS ONLY";
+    LireDonneesPDO3($conn, $sql, $tab);
+    return $tab;
+}
+
+function HeureDePointe($conn) {
+    $sql = "SELECT TO_CHAR(noe_heure_passage, 'HH24') as heure, COUNT(*) as nb
+            FROM vik_noeud
+            GROUP BY TO_CHAR(noe_heure_passage, 'HH24')
+            ORDER BY nb DESC
+            FETCH FIRST 5 ROWS ONLY";
+    LireDonneesPDO3($conn, $sql, $tab);
+    return $tab;
+}
+
+function TrajetsPopulaires($conn) {
+    $sql = "SELECT c1.com_nom as depart, c2.com_nom as arrivee, COUNT(*) as nb
+            FROM vik_etape e
+            JOIN vik_commune c1 ON c1.com_code_insee = e.com_code_insee_depart
+            JOIN vik_commune c2 ON c2.com_code_insee = e.com_code_insee_arrivee
+            GROUP BY c1.com_nom, c2.com_nom
+            ORDER BY nb DESC
+            FETCH FIRST 10 ROWS ONLY";
     LireDonneesPDO3($conn, $sql, $tab);
     return $tab;
 }

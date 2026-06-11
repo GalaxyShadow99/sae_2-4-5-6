@@ -18,6 +18,11 @@ if ($result['NB'] == 0) { header('Location: index.php'); exit(); }
 $meilleurs_clients = MeilleursClients($conn);
 $lignes_utilisees  = LignesPlusUtilisees($conn);
 $reservations      = ReservationsParPeriode($conn);
+$ca_total          = ChiffreAffairesTotal($conn);
+$ca_lignes         = ChiffreAffairesParLigne($conn);
+$clients_points    = ClientsPlusDePoints($conn);
+$heures_pointe     = HeureDePointe($conn);
+$trajets_pop       = TrajetsPopulaires($conn);
 ?>
 
 <!DOCTYPE html>
@@ -26,8 +31,8 @@ $reservations      = ReservationsParPeriode($conn);
 
 <style>
     .nav-tabs .nav-link { color: #555; }
-    .nav-tabs .nav-link.active { 
-        color: rgb(210, 10, 40); 
+    .nav-tabs .nav-link.active {
+        color: rgb(210, 10, 40);
         border-bottom: 2px solid rgb(210, 10, 40);
         font-weight: 500;
     }
@@ -44,11 +49,8 @@ $reservations      = ReservationsParPeriode($conn);
         font-weight: 500;
         font-size: 13px;
     }
-    .rank { 
-        color: rgb(210, 10, 40); 
-        font-weight: 600; 
-        width: 30px;
-    }
+    .table tbody tr:hover { background-color: rgba(210, 10, 40, 0.05); }
+    .rank { color: rgb(210, 10, 40); font-weight: 600; width: 30px; }
 </style>
 
 <body>
@@ -59,15 +61,27 @@ $reservations      = ReservationsParPeriode($conn);
         <h2 class="fw-bold mb-1">Statistiques</h2>
         <p class="text-muted mb-4">Espace administrateur — Viking Transport</p>
 
-        <ul class="nav nav-tabs mb-4" id="statsTabs">
+        <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
-                <a class="nav-link active" href="#" onclick="showTab('clients', this)">Meilleurs clients</a>
+                <a class="nav-link active" href="#" onclick="showTab('clients', this); return false;">Meilleurs clients</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="showTab('lignes', this)">Lignes utilisées</a>
+                <a class="nav-link" href="#" onclick="showTab('lignes', this); return false;">Lignes utilisées</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="showTab('periodes', this)">Réservations par période</a>
+                <a class="nav-link" href="#" onclick="showTab('periodes', this); return false;">Réservations par période</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="showTab('ca', this); return false;">Chiffre d'affaires</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="showTab('points', this); return false;">Clients fidèles</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="showTab('pointe', this); return false;">Heures de pointe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="showTab('trajets', this); return false;">Trajets populaires</a>
             </li>
         </ul>
 
@@ -77,13 +91,7 @@ $reservations      = ReservationsParPeriode($conn);
             <div class="card border-0 shadow-sm">
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Nom</th>
-                            <th>Prénom</th>
-                            <th>Réservations</th>
-                            <th>Points</th>
-                        </tr>
+                        <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Réservations</th><th>Points</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($meilleurs_clients as $i => $c): ?>
@@ -106,11 +114,7 @@ $reservations      = ReservationsParPeriode($conn);
             <div class="card border-0 shadow-sm">
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Ligne</th>
-                            <th>Utilisations</th>
-                        </tr>
+                        <tr><th>#</th><th>Ligne</th><th>Utilisations</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($lignes_utilisees as $i => $l): ?>
@@ -131,16 +135,100 @@ $reservations      = ReservationsParPeriode($conn);
             <div class="card border-0 shadow-sm">
                 <table class="table table-hover mb-0">
                     <thead>
-                        <tr>
-                            <th>Période</th>
-                            <th>Réservations</th>
-                        </tr>
+                        <tr><th>Période</th><th>Réservations</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($reservations as $r): ?>
                         <tr>
                             <td><?= $r['PERIODE'] ?></td>
                             <td><?= $r['NB_RESERVATIONS'] ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chiffre d'affaires -->
+        <div id="tab-ca" style="display:none">
+            <p class="section-title">Chiffre d'affaires total : <strong><?= number_format($ca_total, 2) ?> €</strong></p>
+            <div class="card border-0 shadow-sm">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>#</th><th>Ligne</th><th>CA Total</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ca_lignes as $i => $l): ?>
+                        <tr>
+                            <td class="rank"><?= $i + 1 ?></td>
+                            <td>Ligne <?= trim($l['LIG_NUM']) ?></td>
+                            <td><?= number_format($l['CA_TOTAL'], 2) ?> €</td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Clients fidèles -->
+        <div id="tab-points" style="display:none">
+            <p class="section-title">Top 10 clients par points fidélité</p>
+            <div class="card border-0 shadow-sm">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Points en cours</th><th>Points total</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($clients_points as $i => $c): ?>
+                        <tr>
+                            <td class="rank"><?= $i + 1 ?></td>
+                            <td><?= htmlspecialchars($c['CLI_NOM']) ?></td>
+                            <td><?= htmlspecialchars($c['CLI_PRENOM']) ?></td>
+                            <td><?= $c['CLI_NB_POINTS_EC'] ?></td>
+                            <td><?= $c['CLI_NB_POINTS_TOT'] ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Heures de pointe -->
+        <div id="tab-pointe" style="display:none">
+            <p class="section-title">Top 5 des heures les plus fréquentées</p>
+            <div class="card border-0 shadow-sm">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>#</th><th>Heure</th><th>Passages</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($heures_pointe as $i => $h): ?>
+                        <tr>
+                            <td class="rank"><?= $i + 1 ?></td>
+                            <td><?= $h['HEURE'] ?>h00</td>
+                            <td><?= $h['NB'] ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Trajets populaires -->
+        <div id="tab-trajets" style="display:none">
+            <p class="section-title">Top 10 des trajets les plus réservés</p>
+            <div class="card border-0 shadow-sm">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr><th>#</th><th>Départ</th><th>Arrivée</th><th>Réservations</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($trajets_pop as $i => $t): ?>
+                        <tr>
+                            <td class="rank"><?= $i + 1 ?></td>
+                            <td><?= htmlspecialchars($t['DEPART']) ?></td>
+                            <td><?= htmlspecialchars($t['ARRIVEE']) ?></td>
+                            <td><?= $t['NB'] ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -159,7 +247,6 @@ $reservations      = ReservationsParPeriode($conn);
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById('tab-' + tab).style.display = 'block';
         el.classList.add('active');
-        return false;
     }
     </script>
 </body>
