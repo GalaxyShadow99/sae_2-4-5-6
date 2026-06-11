@@ -28,7 +28,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
         // --- RECUPERATION DES INFOS CLIENT ---
         $infoClient = [];
         if ($estConnecte) {
-            $sqlClient = "SELECT cli_nom, cli_courriel FROM vik_client WHERE cli_num = :id";
+            $sqlClient = "SELECT cli_nom, cli_courriel, cli_telephone, cli_nb_points_ec FROM vik_client WHERE cli_num = :id";
             $stmtClient = $conn->prepare($sqlClient);
             $stmtClient->execute(['id' => $_SESSION['user_id']]);
             $infoClient = $stmtClient->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -68,16 +68,65 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $tarifsCalcules = $_SESSION['tarifs_temp'];
                 $prixTotal = $_SESSION['prix_total_temp'];
 
+                $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
+                $pointsGagnesTotal = floor($distanceTotale / 10);
+
+                // --- GESTION DE LA REDUCTION (SYSTÈME DE PALIERS) ---
+                $pointsDispos = $estConnecte ? (int)($infoClient['CLI_NB_POINTS_EC'] ?? 0) : 0;
+                $utiliserPoints = isset($_POST['utiliser_points']) && $pointsDispos >= 100;
+                
+                $pointsUtilisesTotaux = 0;
+                $reductionTotale = 0;
+
+                if ($utiliserPoints) {
+                    // Calcul de la valeur maximale que le client peut tirer de ses points
+                    $max_reduction = floor($pointsDispos / 1000) * 15 + floor(($pointsDispos % 1000) / 500) * 7 + floor(($pointsDispos % 500) / 100) * 1;
+                    
+                    if ($prixTotal >= $max_reduction) {
+                        $reductionTotale = $max_reduction;
+                        $pointsUtilisesTotaux = floor($pointsDispos / 100) * 100; 
+                    } else {
+                        // Optimisation : On cherche la dépense de points MINIMALE pour un prix à 0€
+                        $meilleur_points = $pointsDispos;
+                        $max_1000 = floor($pointsDispos / 1000);
+                        
+                        for ($i = 0; $i <= $max_1000; $i++) {
+                            $max_500 = floor(($pointsDispos - $i * 1000) / 500);
+                            for ($j = 0; $j <= $max_500; $j++) {
+                                $max_100 = floor(($pointsDispos - $i * 1000 - $j * 500) / 100);
+                                for ($k = 0; $k <= $max_100; $k++) {
+                                    $reduc_potentielle = $i * 15 + $j * 7 + $k * 1;
+                                    $cout_points = $i * 1000 + $j * 500 + $k * 100;
+                                    
+                                    if ($reduc_potentielle >= $prixTotal && $cout_points < $meilleur_points) {
+                                        $meilleur_points = $cout_points;
+                                    }
+                                }
+                            }
+                        }
+                        $reductionTotale = $prixTotal; 
+                        $pointsUtilisesTotaux = $meilleur_points; 
+                    }
+                }
+
                 try {
                     $conn->beginTransaction();
                     foreach ($numLignes as $i => $ligne) {
                         $dep = trim($comDeparts[$i]);
                         $arr = trim($comArrivees[$i]);
                         $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
-                        $prix = $tarifsCalcules[$i]['PRIX'] ?? null;
+                        $prix = $tarifsCalcules[$i]['PRIX'] ?? 0;
+
+                        // Application de la réduction sur le premier segment
+                        if ($i === 0 && $reductionTotale > 0) {
+                            $prix = max(0, $prix - $reductionTotale);
+                        }
+
+                        $pointsPourCeSegment = ($i === 0) ? $pointsGagnesTotal : 0;
+                        $pointsDepensesCeSegment = ($i === 0) ? $pointsUtilisesTotaux : 0;
                         
                         if($estConnecte) {
-                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix);
+                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix, $pointsPourCeSegment, $pointsDepensesCeSegment);
                         } else {
                             $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
                         }
@@ -87,14 +136,14 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     $message = 'Votre réservation a bien été enregistrée !';
                     $messageType = 'success';
                     $reservationReussie = true;
-                    unset($_SESSION['resa_temp'], $_SESSION['tarifs_temp'], $_SESSION['prix_total_temp']); 
+                    unset($_SESSION['resa_temp'], $_SESSION['tarifs_temp'], $_SESSION['prix_total_temp'], $_SESSION['distance_totale_temp']); 
                 } catch (Exception $e) {
                     $conn->rollBack();
                     $message = 'Erreur : ' . $e->getMessage();
                     $messageType = 'danger';
                 }
             } 
-            
+
             // ETAPE 1 : VERIFICATION DES CHAMPS (Bouton Réserver cliqué)
             else {
                 $nom = trim($_POST['nom'] ?? '');
@@ -125,6 +174,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 }
 
                 $prixTotal = 0;
+                $distanceTotale = 0;
                 if (empty($erreurs)) {
                     foreach ($numLignes as $i => $ligne) {
                         $dep = trim($comDeparts[$i]);
@@ -133,6 +183,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         if ($tarif !== false) {
                             $tarifsCalcules[$i] = $tarif;
                             $prixTotal += $tarif['PRIX'];
+                            $distanceTotale += $tarif['DISTANCE'] ?? 0;
                         } else {
                             $tarifsCalcules[$i] = null;
                             $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun tarif trouvé pour ce trajet.';
@@ -144,11 +195,11 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     $message = implode('<br>', array_map('htmlspecialchars', $erreurs));
                     $messageType = 'danger';
                 } else {
-                    // On passe en mode récapitulatif
                     $afficherRecap = true;
                     $_SESSION['resa_temp'] = $_POST;
                     $_SESSION['tarifs_temp'] = $tarifsCalcules;
                     $_SESSION['prix_total_temp'] = $prixTotal;
+                    $_SESSION['distance_totale_temp'] = $distanceTotale;
                 }
             }
         }
@@ -160,12 +211,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
             </div>
         <?php endif; ?>
 
-        <?php 
-        // ==========================================
-        // VUE 1 : RESERVATION RÉUSSIE (TICKET VERT)
-        // ==========================================
-        if ($reservationReussie): 
-        ?>
+        <?php if ($reservationReussie): ?>
             <div class="row justify-content-center mt-4">
                 <div class="col-md-8">
                     <div class="card shadow-sm border-success">
@@ -181,12 +227,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 </div>
             </div>
 
-        <?php 
-        // ==========================================
-        // VUE 2 : RÉCAPITULATIF (CARTE JAUNE)
-        // ==========================================
-        elseif ($afficherRecap): 
-        ?>
+        <?php elseif ($afficherRecap): ?>
             <div class="row justify-content-center mt-4">
                 <div class="col-md-8">
                     <div class="card shadow-sm border-warning">
@@ -195,6 +236,17 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         </div>
                         <div class="card-body">
                             <p class="fs-5 mb-0"><?= htmlspecialchars($_SESSION['resa_temp']['prenom'] . ' ' . $_SESSION['resa_temp']['nom']) ?></p>
+                            <div class="mt-2 small">
+                                <?php if ($estConnecte): ?>
+                                    <span class="text-muted">Vos points disponibles :</span>
+                                    <strong><?= (int) ($infoClient['CLI_NB_POINTS_EC'] ?? 0) ?> pts</strong><br>
+                                    <span class="text-success"><i class="bi bi-plus-circle-fill"></i> Points gagnés avec ce voyage :</span>
+                                    <strong>+<?= floor(($_SESSION['distance_totale_temp'] ?? 0) / 10) ?> pts</strong>
+                                <?php else: ?>
+                                    <span class="text-muted"><i class="bi bi-info-circle"></i> Créez un compte ou connectez-vous pour cumuler des points de fidélité (1 pt / 10 km).</span>
+                                <?php endif; ?>
+                            </div>
+                        
                             <hr>
                             <ul class="list-group mb-4">
                                 <?php foreach ($_SESSION['resa_temp']['Num_Ligne'] as $i => $ligne): ?>
@@ -212,10 +264,19 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                             </ul>
                             <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded border">
                                 <h5 class="mb-0 text-muted">TOTAL À PAYER</h5>
-                                <h3 class="mb-0 text-warning fw-bold"><?= htmlspecialchars((string)$_SESSION['prix_total_temp']) ?> €</h3>
+                                <h3 class="mb-0 text-warning fw-bold" id="affichagePrixTotal"><?= htmlspecialchars((string)$_SESSION['prix_total_temp']) ?> €</h3>
                             </div>
                             
                             <form method="post" class="mt-4">
+                                <?php if ($estConnecte): ?>
+                                    <div class="form-check form-switch mb-3 p-3 bg-light rounded border text-start d-flex align-items-center">
+                                        <input class="form-check-input me-3 ms-0" type="checkbox" id="utiliserPoints" name="utiliser_points" value="1">
+                                        <label class="form-check-label fw-bold text-dark mb-0" for="utiliserPoints">
+                                            <i class="bi bi-gift-fill text-warning me-1"></i> Utiliser mes points fidélité (par paliers) pour réduire le prix
+                                        </label>
+                                    </div>
+                                <?php endif; ?>
+                                
                                 <button type="submit" name="bouton_valider" class="btn btn-success btn-lg w-100 mb-2">Valider la réservation</button>
                                 <a href="reserver.php" class="btn btn-outline-secondary w-100">Modifier les informations</a>
                             </form>
@@ -224,12 +285,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 </div>
             </div>
 
-        <?php 
-        // ==========================================
-        // VUE 3 : LE FORMULAIRE DE BASE
-        // ==========================================
-        else: 
-        ?>
+        <?php else: ?>
             <div class="row justify-content-center mt-4">
                 <div class="col-md-7">
                     <form method="post" id="formReservation">
@@ -250,7 +306,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                                 <div class="mb-3">
                                     <label for="telephone" class="form-label">Téléphone *</label>
                                     <input type="text" class="form-control" id="telephone" name="telephone"
-                                        value="<?= htmlspecialchars($_POST['telephone'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($_POST['telephone'] ?? $infoClient['CLI_TELEPHONE'] ?? '') ?>"
                                         placeholder="0612345678" maxlength="14" required>
                                 </div>
                                 <div class="mb-3">
@@ -458,6 +514,34 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 }
             </script>
         <?php endif; ?>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const switchPoints = document.getElementById('utiliserPoints');
+                
+                if (switchPoints) {
+                    const prixElement = document.getElementById('affichagePrixTotal');
+                    const prixInitial = parseFloat(prixElement.textContent);
+                    const pointsDispos = <?= isset($infoClient['CLI_NB_POINTS_EC']) ? (int)$infoClient['CLI_NB_POINTS_EC'] : 0 ?>;
+
+                    switchPoints.addEventListener('change', function() {
+                        if (this.checked) {
+                            let max_reduction = Math.floor(pointsDispos / 1000) * 15 + 
+                                                Math.floor((pointsDispos % 1000) / 500) * 7 + 
+                                                Math.floor((pointsDispos % 500) / 100) * 1;
+                            
+                            let remiseReelle = Math.min(max_reduction, prixInitial);
+                            let nouveauPrix = Math.max(0, prixInitial - remiseReelle);
+                            
+                            prixElement.innerHTML = nouveauPrix.toFixed(2) + ' € <br>' + 
+                                '<span class="badge bg-success fs-6 mt-2 shadow-sm">- ' + remiseReelle.toFixed(2) + ' € (Fidélité)</span>';
+                        } else {
+                            prixElement.innerHTML = prixInitial.toFixed(2) + ' €';
+                        }
+                    });
+                }
+            });
+        </script>
 
     </main>
 
