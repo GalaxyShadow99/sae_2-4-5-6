@@ -52,16 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header('Location: inscription.php');
                 exit;
             } else {
-                // cath error ORA-12899 d'oracle : value too large for column
-                if ($conn->errorInfo()[0] == '22001') {
-                    echo "Erreur : une des valeurs dépasse la taille maximale autorisée.";
-                    $error = "Erreur de saisie : une des valeurs est trop longue.";
-                } else {
-                echo "Erreur lors de l'insertion : " . $conn->errorInfo()[2];
                 $error = "Erreur de serveur : insertion échouée.";
             }
         }
-    }
     }
 }
 
@@ -69,7 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="fr">
 <?php include_once("./includes/head.php"); ?>
-<body>
+<body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container py-5">
@@ -168,5 +161,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
         </script>
     <?php endif; ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

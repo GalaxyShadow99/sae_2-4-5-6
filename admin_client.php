@@ -10,7 +10,7 @@ require_once './bdd/BddClientUtils.php';
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
 if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
-    header('Location: connexion.php');
+    echo popUpClientNotAdmin();
     exit();
 }
 ?>
@@ -26,6 +26,15 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
     }
     th[data-sort]:hover {
         background-color: #e9ecef !important;
+    }
+    
+    .table {
+        font-size: 0.95rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 1rem !important;
     }
     th[data-sort]::after {
         content: " ↕";
@@ -47,6 +56,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                         Espace Administrateur
                     </span>
                 </div>
+                <a href="admin_dashboard.php" class="btn btn-outline-secondary mb-3">← Retour au dashboard</a>
                 <h1 class="display-6 fw-bold text-dark mb-0">Gestion des Clients</h1>
             </div>
             
@@ -114,7 +124,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                                             } elseif ($typNum === 2) {
                                                 $statusBadge = '<span class="badge bg-info text-dark">Poussin</span>';
                                             } elseif ($typNum === 1) {
-                                                $statusBadge = '<span class="badge bg-success text-white">Nouveau (95%)</span>';
+                                                $statusBadge = '<span class="badge bg-success text-white">Nouveau</span>';
                                             } else {
                                                 $statusBadge = '<span class="badge bg-dark text-white">Non défini</span>';
                                             }
@@ -156,7 +166,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                                             
                                             <td class="pe-4 text-end">
                                                 <?php if ($isAnonyme): ?>
-                                                    <a href="admin_reservations.php?cli_num=0" class="btn btn-sm btn-outline-secondary">
+                                                    <a href="admin_modifier_client.php?cli_num=0" class="btn btn-sm btn-outline-secondary">
                                                         <i class="bi bi-eye"></i> Voir ses réservations
                                                     </a>
                                                 <?php else: ?>
@@ -255,5 +265,12 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
         });
     });
     </script>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

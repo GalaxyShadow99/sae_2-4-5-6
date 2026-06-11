@@ -287,6 +287,13 @@ include_once("./includes/head.php"); ?>
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 
 </html>

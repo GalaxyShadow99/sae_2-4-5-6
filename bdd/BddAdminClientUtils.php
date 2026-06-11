@@ -84,4 +84,47 @@ function updateClientInfos($conn, $cliNum, $nom, $prenom, $ville, $tel, $mail) {
         return false;
     }
 }
+
+function popUpClientNotAdmin() {
+    return '
+    <div class="modal fade" id="accessDeniedModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header text-white border-0 py-3" style="background: linear-gradient(135deg, #dc3545, #f25c6c);">
+                    <h5 class="modal-title fw-bold mx-auto"><i class="bi bi-shield-x me-2"></i>Accès refusé</h5>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="text-danger display-1 mb-3">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <p class="mb-0 fs-5 fw-medium text-secondary">Privilèges insuffisants.</p>
+                    <small class="text-muted d-block mt-2">Vous n\'avez pas les droits d\'administrateur pour consulter cette page.</small>
+                </div>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <a href="index.php" class="btn btn-danger px-4 rounded-3 fw-semibold shadow-sm">
+                        Retour à l\'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener(\'DOMContentLoaded\', function () {
+            const modalElement = document.getElementById(\'accessDeniedModal\');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+            modalElement.addEventListener(\'hidden.bs.modal\', function () {
+                window.location.href = \'index.php\';
+            });
+
+            setTimeout(function () {
+                modal.hide();
+            }, 3000);
+        });
+    </script>
+    ';
+}
+
 ?>
