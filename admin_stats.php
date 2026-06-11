@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 include_once("./bdd/env.php");
 include_once("./bdd/BddConnexionUtils.php");
 include_once("./bdd/BddAdminStatsUtils.php");
+include_once("./bdd/BddAdminClientUtils.php");
 
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
