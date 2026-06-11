@@ -56,8 +56,26 @@ if (isset($_SESSION['user_id'])) {
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-2 transition" href="lignes.php">Lignes</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3 rounded-2 transition" href="reserver.php">Réserver</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3 rounded-2 transition" 
+                    href="#" 
+                    role="button" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false">
+                        Réserver
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-sm">
+                        <li>
+                            <a class="dropdown-item py-2 px-3 transition" href="reserver.php">
+                                <i class="bi bi-cursor-fill me-2 opacity-75"></i>Manuellement
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 px-3 transition" href="carte.php">
+                                <i class="bi bi-map-fill me-2 opacity-75"></i>Carte interactive
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
 
