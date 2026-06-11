@@ -92,7 +92,14 @@ if (!empty($erreurs)) {
                         $arr    = trim($comArrivees[$i]);
                         $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
                         $prix   = $tarifsCalcules[$i]['PRIX'] ?? null;
-                        $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
+                        
+                        
+                        if($estConnecte) {
+                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'],$tarNum,$prix);
+                            } else {
+                                $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
+                            }
+                        
                         if (!$ok) throw new Exception('Échec insertion segment ' . ($i + 1));
                     }
                     $conn->commit();
