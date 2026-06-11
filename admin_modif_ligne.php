@@ -92,8 +92,8 @@ $erreur = isset($_GET['msg']) && $_GET['msg'] === 'err' ? "Une erreur s'est prod
 
 <main class="container mt-4 mb-5">
 
-    <h2 class="fw-bold mb-1">Modifier les lignes</h2>
-    <p class="text-muted mb-4 small">Espace administrateur</p>
+    <a href="admin_dashboard.php" class="btn btn-outline-secondary mb-3">← Retour au dashboard</a>
+    <h2 class="display-6 fw-bold text-dark mb-3">Modifier les lignes</h2>
 
     <?php if ($succes): ?>
     <div class="alert alert-success alert-dismissible fade show py-2">

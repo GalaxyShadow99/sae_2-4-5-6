@@ -9,7 +9,7 @@ include_once("./bdd/BddLigneUtils.php");
 <body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container pt-3">
+    <main class="container pt-3 pb-5 flex-shrink-0">
         <div class="row mb-4 text-center">
             <div class="col">
                 <h1 class="display-5 fw-bold text-dark">Réseau Viking Transport</h1>
