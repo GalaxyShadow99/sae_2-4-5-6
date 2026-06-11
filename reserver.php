@@ -291,7 +291,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     <form method="post" id="formReservation">
 
                         <div class="card mb-4">
-                            <div class="card-header fw-bold">Vos informations</div>
+                            <div class="card-header fw-bold bg-secondary text-white ">Vos informations</div>
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label for="nom" class="form-label">Nom *</label>
@@ -376,7 +376,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         </div>
 
                         <p><small>* Champs obligatoires</small></p>
-                        <button type="submit" name="bouton_reserver" class="btn btn-primary w-100">Réserver</button>
+                        <button type="submit" name="bouton_reserver" class=" text-white btn w-100 mb-5" style="background-color: rgb(210, 10, 40);">Réserver</button>
 
                     </form>
                 </div>
