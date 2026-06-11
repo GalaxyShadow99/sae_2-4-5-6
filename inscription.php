@@ -149,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <p class="mb-0 fs-5"><?= htmlspecialchars($success) ?></p>
                     </div>
                     <div class="modal-footer justify-content-center border-0 pb-4">
-                        <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Continuer</button>
+                        <a href="index.php" class="btn btn-success px-4">Continuer</a>
                     </div>
                 </div>
             </div>
@@ -161,5 +161,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
         </script>
     <?php endif; ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

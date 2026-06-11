@@ -18,6 +18,30 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
             $horaires[] = $h;
         }
     }
+    $villes = ObtenirVillesOrdonnees($conn, $lig_selectionnee);
+    $is_terminus = false;
+    $firstCode = !empty($villes) ? $villes[0]['COM_CODE_INSEE'] : null;
+    $lastCode = !empty($villes) ? $villes[count($villes)-1]['COM_CODE_INSEE'] : null;
+    if ($firstCode && $ville_selectionnee == $firstCode) {
+        $is_terminus = true;
+    }
+    if ($lastCode && $ville_selectionnee == $lastCode) {
+        $is_terminus = true;
+    }
+        // Récupérer directement le(s) terminus depuis la table vik_ligne (plus simple et fiable)
+        $lines = ListeLignes($conn);
+        foreach ($lines as $ln) {
+            if (trim($ln['LIG_NUM']) == trim($lig_selectionnee)) {
+                $debu = $ln['COM_CODE_INSEE_DEBU'];
+                $term = $ln['COM_CODE_INSEE_TERM'];
+                if ($ville_selectionnee == $debu || $ville_selectionnee == $term) {
+                    $is_terminus = true;
+                }
+                break;
+            }
+        }
+        // Garder la liste ordonnée des arrêts pour l'affichage
+        $villes = ObtenirVillesOrdonnees($conn, $lig_selectionnee);
 } elseif (isset($_GET['lig_num'])) {
     $lig_selectionnee = $_GET['lig_num'];
     $villes = ObtenirVillesOrdonnees($conn, $lig_selectionnee);
@@ -48,9 +72,12 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
                     Grille horaire
                 </div>
                 <div class="card-body p-0">
-                    <?php if (empty($horaires)): ?>
-                        <div class="alert alert-warning m-3">Aucun horaire trouvé pour cet arrêt.</div>
-                    <?php else: ?>
+                        <?php if (empty($horaires) && $is_terminus): ?>
+                            <div class="alert alert-info m-3">Cet arrêt est un terminus — changez de direction pour voir les prochains départs.</div>
+                        <?php else: ?>
+                            <?php if (empty($horaires)): ?>
+                                <div class="alert alert-warning m-3">Aucun horaire trouvé pour cet arrêt.</div>
+                            <?php endif; ?>
                         <table class="table table-striped table-hover mb-0 table-viking">
                             <thead>
                                 <tr>
@@ -101,5 +128,12 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>
