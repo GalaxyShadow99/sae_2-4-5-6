@@ -93,5 +93,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
         </script>
     <?php endif; ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

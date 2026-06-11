@@ -313,5 +313,12 @@ $trajets_pop       = TrajetsPopulaires($conn);
             : 'Réduire';
     }
     </script>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

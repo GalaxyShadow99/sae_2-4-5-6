@@ -10,7 +10,7 @@ require_once './bdd/BddClientUtils.php';
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
 if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
-    header('Location: connexion.php');
+    echo popUpClientNotAdmin();
     exit();
 }
 ?>
@@ -114,7 +114,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                                             } elseif ($typNum === 2) {
                                                 $statusBadge = '<span class="badge bg-info text-dark">Poussin</span>';
                                             } elseif ($typNum === 1) {
-                                                $statusBadge = '<span class="badge bg-success text-white">Nouveau (95%)</span>';
+                                                $statusBadge = '<span class="badge bg-success text-white">Nouveau</span>';
                                             } else {
                                                 $statusBadge = '<span class="badge bg-dark text-white">Non défini</span>';
                                             }
@@ -255,5 +255,12 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
         });
     });
     </script>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

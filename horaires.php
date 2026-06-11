@@ -128,5 +128,12 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>

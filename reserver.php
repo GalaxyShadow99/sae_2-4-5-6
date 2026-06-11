@@ -463,6 +463,13 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 
 </html>

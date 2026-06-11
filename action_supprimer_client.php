@@ -10,7 +10,7 @@ require_once './bdd/BddClientUtils.php';
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
 if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
-    header('Location: connexion.php');
+    popUpClientNotAdmin();
     exit();
 }
 
@@ -91,5 +91,12 @@ if ($cli_num !== null && $cli_num !== 0 && $conn) {
             }, 3000);
         });
     </script>
+
+    <?php
+    // Fermeture de la connexion BDD
+    if (isset($conn)) {
+        $conn = null;
+    }
+    ?>
 </body>
 </html>
