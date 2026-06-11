@@ -1,5 +1,10 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="fr" class="h-100"> 
+
 
 <?php include_once("./includes/head.php"); ?>
 
