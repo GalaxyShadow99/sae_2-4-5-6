@@ -28,7 +28,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
         // --- RECUPERATION DES INFOS CLIENT ---
         $infoClient = [];
         if ($estConnecte) {
-            $sqlClient = "SELECT cli_nom, cli_courriel FROM vik_client WHERE cli_num = :id";
+            $sqlClient = "SELECT cli_nom, cli_courriel, cli_telephone, cli_nb_points_ec FROM vik_client WHERE cli_num = :id";
             $stmtClient = $conn->prepare($sqlClient);
             $stmtClient->execute(['id' => $_SESSION['user_id']]);
             $infoClient = $stmtClient->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -68,6 +68,9 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $tarifsCalcules = $_SESSION['tarifs_temp'];
                 $prixTotal = $_SESSION['prix_total_temp'];
 
+                $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
+                $pointsGagnesTotal = floor($distanceTotale / 10);
+
                 try {
                     $conn->beginTransaction();
                     foreach ($numLignes as $i => $ligne) {
@@ -75,9 +78,11 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         $arr = trim($comArrivees[$i]);
                         $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
                         $prix = $tarifsCalcules[$i]['PRIX'] ?? null;
+
+                        $pointsPourCeSegment = ($i === 0) ? $pointsGagnesTotal : 0;
                         
                         if($estConnecte) {
-                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix);
+                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix, $pointsPourCeSegment);
                         } else {
                             $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
                         }
@@ -125,6 +130,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 }
 
                 $prixTotal = 0;
+                $distanceTotale = 0; // NOUVEAU
                 if (empty($erreurs)) {
                     foreach ($numLignes as $i => $ligne) {
                         $dep = trim($comDeparts[$i]);
@@ -133,6 +139,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         if ($tarif !== false) {
                             $tarifsCalcules[$i] = $tarif;
                             $prixTotal += $tarif['PRIX'];
+                            $distanceTotale += $tarif['DISTANCE'] ?? 0; // NOUVEAU
                         } else {
                             $tarifsCalcules[$i] = null;
                             $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun tarif trouvé pour ce trajet.';
@@ -149,6 +156,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     $_SESSION['resa_temp'] = $_POST;
                     $_SESSION['tarifs_temp'] = $tarifsCalcules;
                     $_SESSION['prix_total_temp'] = $prixTotal;
+                    $_SESSION['distance_totale_temp'] = $distanceTotale;
                 }
             }
         }
@@ -195,6 +203,18 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         </div>
                         <div class="card-body">
                             <p class="fs-5 mb-0"><?= htmlspecialchars($_SESSION['resa_temp']['prenom'] . ' ' . $_SESSION['resa_temp']['nom']) ?></p>
+                            <div class="mt-2 small">
+                                <?php if ($estConnecte): ?>
+                                    <span class="text-muted">Vos points disponibles :</span>
+                                    <strong><?= (int) ($infoClient['CLI_NB_POINTS_EC'] ?? 0) ?> pts</strong><br>
+                                    <span class="text-success"><i class="bi bi-plus-circle-fill"></i> Points gagnés avec ce voyage :</span>
+                                    <strong>+<?= floor(($_SESSION['distance_totale_temp'] ?? 0) / 10) ?> pts</strong>
+                                <?php else: ?>
+                                    <span class="text-muted"><i class="bi bi-info-circle"></i> Créez un compte ou connectez-vous pour cumuler des
+                                        points de fidélité (1 pt / 10 km).</span>
+                                <?php endif; ?>
+                            </div>
+                        
                             <hr>
                             <ul class="list-group mb-4">
                                 <?php foreach ($_SESSION['resa_temp']['Num_Ligne'] as $i => $ligne): ?>
@@ -250,7 +270,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                                 <div class="mb-3">
                                     <label for="telephone" class="form-label">Téléphone *</label>
                                     <input type="text" class="form-control" id="telephone" name="telephone"
-                                        value="<?= htmlspecialchars($_POST['telephone'] ?? '') ?>"
+                                        value="<?= htmlspecialchars($_POST['telephone'] ?? $infoClient['CLI_TELEPHONE'] ?? '') ?>"
                                         placeholder="0612345678" maxlength="14" required>
                                 </div>
                                 <div class="mb-3">
