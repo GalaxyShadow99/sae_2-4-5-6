@@ -70,7 +70,7 @@ $conn = null;
 }
 
 /* ================================================================
-   BARRE DE RECHERCHE COMMUNE (au-dessus de la carte)
+   BARRE DE RECHERCHE COMMUNE
    ================================================================ */
 #search-bar {
     position: absolute;
@@ -107,18 +107,20 @@ $conn = null;
     background: transparent;
     color: var(--viking-dark);
 }
-#search-commune-input::placeholder { color: #adb5bd; }
 
 #search-commune-btn {
     background: var(--viking-red);
     border: none;
     color: #fff;
-    padding: 10px 14px;
-    font-size: 1rem;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
     cursor: pointer;
     border-radius: 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0;
     transition: background var(--transition);
     flex-shrink: 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 #search-commune-btn:hover { background: #a50820; }
 
@@ -330,35 +332,6 @@ $conn = null;
 }
 .trajet-card .tc-remove:hover { color: var(--viking-red); }
 
-#btn-ajouter-trajet {
-    width: 100%;
-    background: transparent;
-    border: 2px dashed #ced4da;
-    color: #6c757d;
-    border-radius: var(--radius);
-    padding: 9px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: border-color 0.18s, color 0.18s, background 0.18s;
-    font-weight: 600;
-}
-#btn-ajouter-trajet:hover {
-    border-color: var(--viking-red);
-    color: var(--viking-red);
-    background: #fff3f5;
-}
-
-/* Formulaire ajout trajet */
-#form-ajout-trajet {
-    background: #fff3f5;
-    border: 1.5px solid #f5c6cb;
-    border-radius: var(--radius);
-    padding: 12px;
-    margin-bottom: 10px;
-    display: none;
-}
-#form-ajout-trajet.open { display: block; }
-
 /* ================================================================
    INFOS LIGNE
    ================================================================ */
@@ -485,6 +458,8 @@ $conn = null;
     cursor: pointer;
     transition: background 0.2s;
     display: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 #btn-toggle-panel:hover { background: #343a40; }
 #btn-toggle-panel.visible { display: block; }
@@ -539,6 +514,54 @@ $conn = null;
 }
 .leaflet-tooltip-viking::before { border-top-color: var(--viking-dark); }
 
+.leaflet-tooltip-routes {
+    background: #fff;
+    color: var(--viking-dark);
+    border: 2px solid var(--viking-dark);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    min-width: 140px;
+    pointer-events: none;
+}
+.leaflet-tooltip-routes::before { border-top-color: var(--viking-dark); }
+
+.tooltip-commune-name {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--viking-dark);
+    margin-bottom: 5px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 4px;
+}
+.tooltip-lignes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 4px;
+}
+.tooltip-ligne-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+}
+.tooltip-ligne-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.tooltip-ligne-label {
+    font-weight: 700;
+    color: var(--viking-dark);
+}
+.tooltip-ligne-route {
+    color: #6c757d;
+    font-weight: 400;
+}
+
 .popup-viking .leaflet-popup-content-wrapper {
     background: var(--viking-dark);
     color: #fff;
@@ -566,6 +589,8 @@ $conn = null;
     gap: 6px;
     align-items: center;
     cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 #trajets-counter.visible { display: flex; }
 
@@ -677,11 +702,10 @@ $conn = null;
         <div id="search-commune-wrapper">
             <input type="text"
                    id="search-commune-input"
-                   placeholder="🔍 Rechercher une commune…"
                    autocomplete="off"
                    aria-label="Recherche de commune"
             >
-            <button id="search-commune-btn" title="Centrer sur la commune">→</button>
+            <button id="search-commune-btn" title="Centrer sur la commune">Rechercher</button>
         </div>
         <div id="autocomplete-list" role="listbox"></div>
     </div>
@@ -691,17 +715,17 @@ $conn = null;
 
     <!-- Bouton toggle panneau -->
     <button id="btn-toggle-panel" onclick="ouvrirPanel()">
-        🗺️ Réserver via la carte
+        Reserver via la carte
     </button>
 
     <!-- Compteur trajets sélectionnés -->
     <div id="trajets-counter" onclick="ouvrirPanel(); switchTab('tab-trajets')">
-        🛒 <span id="trajets-count">0</span> trajet(s) sélectionné(s)
+        <span id="trajets-count">0</span> trajet(s) selectionne(s)
     </div>
 
     <!-- Légende -->
     <div id="legende-carte">
-        <h6>Légende</h6>
+        <h6>Legende</h6>
         <div class="legende-item">
             <div class="legende-line" style="background:#2980b9;"></div>
             <span>Ligne A (aller)</span>
@@ -726,7 +750,7 @@ $conn = null;
         <div id="panel-header">
             <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
                 <span id="panel-ligne-badge" class="ligne-badge">—</span>
-                <h2 id="panel-titre">Réserver un voyage</h2>
+                <h2 id="panel-titre">Reserver un voyage</h2>
             </div>
             <button id="btn-fermer-panel" onclick="fermerPanel()" title="Fermer">×</button>
         </div>
@@ -737,14 +761,14 @@ $conn = null;
             <button class="panel-tab" id="tab-trajets-btn" onclick="switchTab('tab-trajets')">
                 Panier <span id="tab-count-badge" style="background:var(--viking-red);color:#fff;border-radius:10px;padding:0 5px;font-size:0.68rem;display:none;"></span>
             </button>
-            <button class="panel-tab" id="tab-itin-btn" onclick="switchTab('tab-itin')">Itinéraire</button>
+            <button class="panel-tab" id="tab-itin-btn" onclick="switchTab('tab-itin')">Itineraire</button>
             <button class="panel-tab" id="tab-info-btn" onclick="switchTab('tab-info')">Infos</button>
         </div>
 
         <!-- Filtres lignes visibles -->
         <div id="filtres-lignes" title="Cliquez pour masquer/afficher une ligne">
             <span style="font-size:0.7rem;color:#6c757d;align-self:center;font-weight:600;">Afficher :</span>
-            <!-- Générés par JS -->
+            <!-- Generés par JS -->
         </div>
 
         <div id="panel-body">
@@ -757,47 +781,45 @@ $conn = null;
                 <div id="ligne-info-strip">
                     <div style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">
                         <span id="info-depart-nom">—</span>
-                        <span class="trajet-arrow"> → </span>
+                        <span class="trajet-arrow"> — </span>
                         <span id="info-arrivee-nom">—</span>
                     </div>
-                    <span id="info-nb-arrets" class="badge-arrets">— arrêts</span>
+                    <span id="info-nb-arrets" class="badge-arrets">— arrets</span>
                     <span style="margin-left:8px; color:#6c757d; font-size:0.8rem;" id="info-distance"></span>
                 </div>
 
                 <div class="mb-2">
                     <label class="form-label">Ligne</label>
                     <select class="form-select" id="select-ligne-panel" onchange="onLigneChange(this.value)">
-                        <option value="">— Sélectionnez une ligne —</option>
+                        <option value="">Selectionnez une ligne</option>
                         <?php foreach ($lignes as $l):
                             $num = trim($l['LIG_NUM']);
                             $dep = $l['COM_NOM_DEBU'] ?: $l['COM_CODE_INSEE_DEBU'];
                             $arr = $l['COM_NOM_TERM'] ?: $l['COM_CODE_INSEE_TERM'];
                         ?>
                         <option value="<?= htmlspecialchars($num) ?>">
-                            Ligne <?= htmlspecialchars($num) ?> (<?= htmlspecialchars($dep) ?> → <?= htmlspecialchars($arr) ?>)
+                            Ligne <?= htmlspecialchars($num) ?> (<?= htmlspecialchars($dep) ?> — <?= htmlspecialchars($arr) ?>)
                         </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div class="mb-2">
-                    <label class="form-label">Arrêt de départ *</label>
+                    <label class="form-label">Arret de depart *</label>
                     <select class="form-select" id="select-depart-panel">
-                        <option value="" disabled selected>— Choisir d'abord une ligne —</option>
+                        <option value="" disabled selected>Choisir d'abord une ligne</option>
                     </select>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Arrêt d'arrivée *</label>
+                    <label class="form-label">Arret d'arrivee *</label>
                     <select class="form-select" id="select-arrivee-panel">
-                        <option value="" disabled selected>— Choisir d'abord une ligne —</option>
+                        <option value="" disabled selected>Choisir d'abord une ligne</option>
                     </select>
                 </div>
 
-                
-
                 <a id="btn-voir-horaires" href="horaires.php" target="_blank">
-                    📅 Voir les horaires de cette ligne
+                    Voir les horaires de cette ligne
                 </a>
             </div>
 
@@ -811,28 +833,28 @@ $conn = null;
                     <label class="form-label">Nom *</label>
                     <input type="text" class="form-control" id="input-nom"
                         value="<?= htmlspecialchars($infoClient['CLI_NOM'] ?? '') ?>"
-                        placeholder="DUPONT" required>
+                        required>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label">Prénom *</label>
+                    <label class="form-label">Prenom *</label>
                     <input type="text" class="form-control" id="input-prenom"
                         value="<?= htmlspecialchars($infoClient['CLI_PRENOM'] ?? $_SESSION['user_prenom'] ?? '') ?>"
-                        placeholder="Jean" required>
+                        required>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label">Téléphone *</label>
+                    <label class="form-label">Telephone *</label>
                     <input type="text" class="form-control" id="input-tel"
                         value="<?= htmlspecialchars($infoClient['cli_telephone'] ?? '') ?>"
-                        placeholder="0612345678" maxlength="14" required>
+                        maxlength="14" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email *</label>
                     <input type="email" class="form-control" id="input-email"
                         value="<?= htmlspecialchars($infoClient['CLI_COURRIEL'] ?? '') ?>"
-                        placeholder="jean.dupont@email.fr" required>
+                        required>
                 </div>
 
-                <p class="section-title">Trajets sélectionnés</p>
+                <p class="section-title">Trajets selectionnes</p>
                 <div id="trajets-panier">
                     <p style="color:#adb5bd; font-size:0.85rem; text-align:center; padding:12px 0;">
                         Aucun trajet — cliquez une ligne sur la carte
@@ -841,13 +863,13 @@ $conn = null;
 
                 <?php if (!$estConnecte): ?>
                 <div style="background:#fff3cd; border:1px solid #ffc107; border-radius:var(--radius); padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">
-                    <strong>Non connecté :</strong> réservation sans compte.
+                    <strong>Non connecte :</strong> reservation sans compte.
                     <a href="connexion.php" style="color:#856404;">Se connecter</a> ou
                     <a href="inscription.php" style="color:#856404;">s'inscrire</a> pour gagner des points.
                 </div>
                 <?php else: ?>
                 <div style="background:#d4edda; border:1px solid #28a745; border-radius:var(--radius); padding:8px 12px; font-size:0.82rem; margin-bottom:10px;">
-                    ✓ Connecté — vous gagnerez des points fidélité.
+                    Connecte — vous gagnerez des points fidelite.
                 </div>
                 <?php endif; ?>
 
@@ -859,14 +881,14 @@ $conn = null;
                 </form>
 
                 <button type="button" id="btn-reserver-carte" onclick="soumettreTousLesTrajets()">
-                    Réserver tous les trajets →
+                    Reserver tous les trajets
                 </button>
                 <button type="button" id="btn-vider-panier"
                     style="width:100%;margin-top:6px;background:transparent;border:1.5px solid #dee2e6;color:#6c757d;border-radius:var(--radius);padding:8px;font-size:0.82rem;cursor:pointer;font-weight:600;transition:0.15s;"
                     onmouseover="this.style.borderColor='#d20a28';this.style.color='#d20a28'"
                     onmouseout="this.style.borderColor='#dee2e6';this.style.color='#6c757d'"
                     onclick="viderPanier()">
-                    🗑️ Vider le panier
+                    Vider le panier
                 </button>
             </div>
 
@@ -874,10 +896,10 @@ $conn = null;
                  ONGLET 3 — ITINÉRAIRE VISUEL
                  ====================================== -->
             <div class="tab-content" id="tab-itin">
-                <p class="section-title">Itinéraire des trajets sélectionnés</p>
+                <p class="section-title">Itineraire des trajets selectionnes</p>
                 <div id="itineraire-list">
                     <p style="color:#adb5bd; font-size:0.85rem; text-align:center; padding:12px 0;">
-                        Ajoutez des trajets pour voir l'itinéraire
+                        Ajoutez des trajets pour voir l'itineraire
                     </p>
                 </div>
             </div>
@@ -1022,6 +1044,22 @@ function getCoordsByInsee(insee) {
 }
 
 // ================================================================
+// CONSTRUCTION DE L'INDEX : commune -> lignes qui y passent
+// ================================================================
+// Pour chaque commune (par code INSEE), on recense toutes les lignes
+// dont elle est terminus de départ ou d'arrivée.
+const communeLignesIndex = {}; // insee -> [{ num, dep_nom, arr_nom, color }]
+
+function enregistrerCommuneLigne(insee, nom, ligneObj) {
+    if (!insee) return;
+    if (!communeLignesIndex[insee]) communeLignesIndex[insee] = [];
+    // Éviter les doublons
+    if (!communeLignesIndex[insee].find(l => l.num === ligneObj.num)) {
+        communeLignesIndex[insee].push(ligneObj);
+    }
+}
+
+// ================================================================
 // PALETTE COULEURS LIGNES
 // ================================================================
 const PALETTES = [
@@ -1050,25 +1088,46 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // ================================================================
 // DESSIN DES LIGNES ET MARQUEURS D'ARRÊTS
 // ================================================================
-const lignePolylines = {};   // num_ligne → polyline
-const arretMarkers   = {};   // "lat,lng" → { marker, nom, lignes:[] }
-const lignesSelectionnees = new Set(); // lignes mises en avant
+const lignePolylines = {};   // num_ligne -> { poly, color, isB, ligne }
+const arretMarkers   = {};   // "lat,lng" -> { marker, nom, insee, lignes:[] }
+const lignesSelectionnees = new Set();
 
-// Icône arrêt terminus
-function createArretIcon(color) {
+// ------------------------------------------------------------------
+// GÉNÉRATION DU HTML TOOLTIP COMMUNE (avec liste des lignes)
+// ------------------------------------------------------------------
+function buildTooltipCommuneHtml(nom, lignesPassant) {
+    let rows = '';
+    lignesPassant.forEach(l => {
+        rows += `
+            <div class="tooltip-ligne-row">
+                <div class="tooltip-ligne-dot" style="background:${l.color};"></div>
+                <span class="tooltip-ligne-label">Ligne ${l.num}</span>
+                <span class="tooltip-ligne-route">${l.dep_nom} — ${l.arr_nom}</span>
+            </div>`;
+    });
+    return `
+        <div class="tooltip-commune-name">${nom}</div>
+        <div class="tooltip-lignes-list">${rows}</div>
+    `;
+}
+
+// Icône arrêt terminus — taille proportionnelle au nb de lignes
+function createArretIcon(color, nbLignes) {
+    const size = nbLignes > 1 ? 16 : 12;
+    const border = nbLignes > 1 ? 4 : 3;
     return L.divIcon({
         html: `<div style="
-            width:12px;height:12px;border-radius:50%;
-            background:#fff;border:3px solid ${color};
+            width:${size}px;height:${size}px;border-radius:50%;
+            background:#fff;border:${border}px solid ${color};
             box-shadow:0 1px 4px rgba(0,0,0,0.3);
         "></div>`,
         className: '',
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2],
     });
 }
 
-// Icône arrêt intermédiaire (plus petit)
+// Icône arrêt intermédiaire
 function createArretIconSmall(color) {
     return L.divIcon({
         html: `<div style="
@@ -1082,6 +1141,43 @@ function createArretIconSmall(color) {
     });
 }
 
+// ------------------------------------------------------------------
+// Première passe : collecter toutes les couleurs de lignes
+// ------------------------------------------------------------------
+LIGNES_BDD.forEach(ligne => {
+    const color = getCouleurLigne(ligne.num);
+    enregistrerCommuneLigne(ligne.dep_insee, ligne.dep_nom, { num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color });
+    enregistrerCommuneLigne(ligne.arr_insee, ligne.arr_nom, { num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color });
+});
+
+// Même chose pour les arrêts intermédiaires
+COMMUNES_BDD.forEach(arret => {
+    const num = (arret['LIG_NUM'] || '').trim();
+    const codeArr = arret['COM_CODE_INSEE_ARRIVEE'];
+    if (!num || !codeArr) return;
+    const color = getCouleurLigne(num);
+    const ligneBase = LIGNES_BDD.find(l => l.num === num);
+    if (!ligneBase) return;
+    enregistrerCommuneLigne(codeArr, arret['COM_NOM_ARRIVEE'], {
+        num,
+        dep_nom: ligneBase.dep_nom,
+        arr_nom: ligneBase.arr_nom,
+        color
+    });
+    const codeDep = arret['COM_CODE_INSEE_DEPART'];
+    if (codeDep) {
+        enregistrerCommuneLigne(codeDep, arret['COM_NOM_DEPART'], {
+            num,
+            dep_nom: ligneBase.dep_nom,
+            arr_nom: ligneBase.arr_nom,
+            color
+        });
+    }
+});
+
+// ------------------------------------------------------------------
+// Dessin des lignes et marqueurs
+// ------------------------------------------------------------------
 LIGNES_BDD.forEach((ligne) => {
     const coordDep = getCoordsByNom(ligne.dep_nom) || getCoordsByInsee(ligne.dep_insee);
     const coordArr = getCoordsByNom(ligne.arr_nom) || getCoordsByInsee(ligne.arr_insee);
@@ -1090,14 +1186,22 @@ LIGNES_BDD.forEach((ligne) => {
     const color  = getCouleurLigne(ligne.num);
     const isB    = ligne.num.endsWith('B');
 
-    // === Tracé de la ligne ===
-    const poly = L.polyline(
-        [[coordDep.lat, coordDep.lng], [coordArr.lat, coordArr.lng]],
-        { color, weight: isB ? 3 : 4, opacity: 0.82, dashArray: isB ? '7,5' : null, className: 'ligne-polyline' }
-    ).addTo(map);
+    // === Tracé de la ligne (avec décalage si plusieurs lignes entre deux mêmes communes) ===
+    // Pour éviter la superposition totale, on introduit un léger offset en latitude
+    const polyPoints = [[coordDep.lat, coordDep.lng], [coordArr.lat, coordArr.lng]];
 
+    const poly = L.polyline(polyPoints, {
+        color,
+        weight: isB ? 3 : 4,
+        opacity: 0.85,
+        dashArray: isB ? '7,5' : null,
+        className: 'ligne-polyline'
+    }).addTo(map);
+
+    // Tooltip enrichi sur la ligne elle-même
     poly.bindTooltip(
-        `<strong>Ligne ${ligne.num}</strong><br>${ligne.dep_nom} → ${ligne.arr_nom}<br><em style="font-size:0.75em;opacity:0.8">Cliquez pour ajouter au panier</em>`,
+        `<strong>Ligne ${ligne.num}</strong><br>${ligne.dep_nom} — ${ligne.arr_nom}<br>
+         <em style="font-size:0.75em;opacity:0.8">Cliquer pour ajouter au panier</em>`,
         { sticky: true, className: 'leaflet-tooltip-viking', direction: 'top' }
     );
 
@@ -1111,7 +1215,7 @@ LIGNES_BDD.forEach((ligne) => {
     });
     poly.on('mouseout', function() {
         const sel = lignesSelectionnees.has(ligne.num);
-        this.setStyle({ weight: sel ? 6 : (isB ? 3 : 4), opacity: sel ? 1 : 0.82 });
+        this.setStyle({ weight: sel ? 6 : (isB ? 3 : 4), opacity: sel ? 1 : 0.85 });
     });
 
     lignePolylines[ligne.num] = { poly, color, isB, ligne };
@@ -1122,34 +1226,44 @@ LIGNES_BDD.forEach((ligne) => {
         { coord: coordArr, nom: ligne.arr_nom, insee: ligne.arr_insee }
     ].forEach(({ coord, nom, insee }) => {
         const key = `${coord.lat.toFixed(4)},${coord.lng.toFixed(4)}`;
+        const lignesIci = communeLignesIndex[insee] || [];
+
         if (!arretMarkers[key]) {
             const marker = L.marker([coord.lat, coord.lng], {
-                icon: createArretIcon(color),
+                icon: createArretIcon(color, lignesIci.length),
                 zIndexOffset: 100,
             }).addTo(map);
 
-            marker.bindTooltip(nom, { className: 'leaflet-tooltip-viking', direction: 'top' });
-
-            // Clic sur arrêt → filtre lignes passant par cette commune
-            marker.on('click', () => {
-                const lignesPassant = LIGNES_BDD.filter(l =>
-                    normaliser(l.dep_nom) === normaliser(nom) ||
-                    normaliser(l.arr_nom) === normaliser(nom)
-                );
-                afficherInfoArret(nom, lignesPassant);
+            // Tooltip riche avec toutes les lignes passant par cette commune
+            marker.bindTooltip(buildTooltipCommuneHtml(nom, lignesIci), {
+                className: 'leaflet-tooltip-routes',
+                direction: 'top',
+                offset: [0, -8],
             });
+
+            marker.on('click', () => afficherInfoArret(nom, lignesIci));
 
             arretMarkers[key] = { marker, nom, lignes: [ligne.num], insee };
         } else {
-            // Enrichir l'icône si plusieurs lignes passent par cet arrêt
+            // Mettre à jour l'icône et le tooltip si de nouvelles lignes sont connues
             if (!arretMarkers[key].lignes.includes(ligne.num)) {
                 arretMarkers[key].lignes.push(ligne.num);
-                arretMarkers[key].marker.setIcon(createArretIcon('#212529'));
+                const lignesAJour = communeLignesIndex[insee] || [];
+                // Couleur du dot = couleur de la 1ère ligne, anneau multicolore sinon fond neutre
+                const iconColor = lignesAJour.length > 1 ? '#212529' : color;
+                arretMarkers[key].marker.setIcon(createArretIcon(iconColor, lignesAJour.length));
+                // Rebind tooltip avec données enrichies
+                arretMarkers[key].marker.unbindTooltip();
+                arretMarkers[key].marker.bindTooltip(buildTooltipCommuneHtml(nom, lignesAJour), {
+                    className: 'leaflet-tooltip-routes',
+                    direction: 'top',
+                    offset: [0, -8],
+                });
             }
         }
     });
 
-    // === Arrêts intermédiaires (depuis COMMUNES_BDD) ===
+    // === Arrêts intermédiaires ===
     const arretsIntermediaires = COMMUNES_BDD.filter(c => (c['LIG_NUM'] || '').trim() === ligne.num);
     arretsIntermediaires.forEach(arret => {
         const codeArr = arret['COM_CODE_INSEE_ARRIVEE'];
@@ -1159,18 +1273,17 @@ LIGNES_BDD.forEach((ligne) => {
         if (!coord) return;
         const key = `${coord.lat.toFixed(4)},${coord.lng.toFixed(4)}`;
         if (!arretMarkers[key]) {
+            const lignesIci = communeLignesIndex[codeArr] || [{ num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color }];
             const marker = L.marker([coord.lat, coord.lng], {
                 icon: createArretIconSmall(color),
                 zIndexOffset: 50,
             }).addTo(map);
-            marker.bindTooltip(nomArr, { className: 'leaflet-tooltip-viking', direction: 'top' });
-            marker.on('click', () => {
-                const lignesPassant = LIGNES_BDD.filter(l =>
-                    normaliser(l.dep_nom) === normaliser(nomArr) ||
-                    normaliser(l.arr_nom) === normaliser(nomArr)
-                );
-                afficherInfoArret(nomArr, lignesPassant);
+            marker.bindTooltip(buildTooltipCommuneHtml(nomArr, lignesIci), {
+                className: 'leaflet-tooltip-routes',
+                direction: 'top',
+                offset: [0, -6],
             });
+            marker.on('click', () => afficherInfoArret(nomArr, lignesIci));
             arretMarkers[key] = { marker, nom: nomArr, lignes: [ligne.num], insee: codeArr };
         }
     });
@@ -1180,7 +1293,7 @@ LIGNES_BDD.forEach((ligne) => {
 // FILTRES LIGNES (badges dans le panneau)
 // ================================================================
 const filtresContainer = document.getElementById('filtres-lignes');
-const lignesFiltres = {}; // num → visible
+const lignesFiltres = {};
 
 LIGNES_BDD.forEach(ligne => {
     if (lignesFiltres[ligne.num] !== undefined) return;
@@ -1242,7 +1355,7 @@ function ouvrirPanelLigne(numLigne, depNom, arrNom, depInsee, arrInsee) {
 
     const arretsLigne = COMMUNES_BDD.filter(c => (c['LIG_NUM'] || '').trim() === numLigne);
     const nbArrets = new Set(arretsLigne.map(a => a['COM_CODE_INSEE_DEPART'])).size + 1;
-    document.getElementById('info-nb-arrets').textContent = nbArrets + ' arrêts';
+    document.getElementById('info-nb-arrets').textContent = nbArrets + ' arrets';
 
     document.getElementById('btn-voir-horaires').href = 'horaires.php?lig_num=' + encodeURIComponent(numLigne);
 
@@ -1250,10 +1363,7 @@ function ouvrirPanelLigne(numLigne, depNom, arrNom, depInsee, arrInsee) {
     sel.value = numLigne;
     remplirArretsPanelDepuis(numLigne, depInsee, arrInsee);
 
-    // Mise en avant sur la carte
     surbrillanceLigne(numLigne);
-
-    // Tab info
     afficherInfoLigne(numLigne, depNom, arrNom);
 }
 
@@ -1287,8 +1397,8 @@ function remplirArretsPanelDepuis(numLigne, preselectDep = '', preselectArr = ''
     const selDep = document.getElementById('select-depart-panel');
     const selArr = document.getElementById('select-arrivee-panel');
 
-    selDep.innerHTML = '<option value="" disabled selected>— Choisir un arrêt —</option>';
-    selArr.innerHTML = '<option value="" disabled selected>— Choisir un arrêt —</option>';
+    selDep.innerHTML = '<option value="" disabled selected>Choisir un arret</option>';
+    selArr.innerHTML = '<option value="" disabled selected>Choisir un arret</option>';
 
     const arretsLigne = COMMUNES_BDD.filter(c => (c['LIG_NUM'] || '').trim() === numLigne);
     const departs  = optionsUniques(arretsLigne, 'COM_CODE_INSEE_DEPART',  'COM_NOM_DEPART');
@@ -1324,9 +1434,7 @@ function onLigneChange(numLigne) {
 // ================================================================
 // PANIER MULTI-TRAJETS
 // ================================================================
-let panier = []; // [{ id, numLigne, depCode, depNom, arrCode, arrNom }]
-
-document.getElementById('btn-ajouter-au-panier') && void 0; // déjà défini inline
+let panier = [];
 
 function ajouterTrajetAuPanier() {
     const numLigne = document.getElementById('select-ligne-panel').value;
@@ -1335,25 +1443,23 @@ function ajouterTrajetAuPanier() {
     const depNom   = document.getElementById('select-depart-panel').selectedOptions[0]?.text || depCode;
     const arrNom   = document.getElementById('select-arrivee-panel').selectedOptions[0]?.text || arrCode;
 
-    if (!numLigne) { showToast('Veuillez sélectionner une ligne.'); return; }
-    if (!depCode)  { showToast('Veuillez choisir un arrêt de départ.'); return; }
-    if (!arrCode)  { showToast('Veuillez choisir un arrêt d\'arrivée.'); return; }
-    if (depCode === arrCode) { showToast('Départ et arrivée identiques !'); return; }
+    if (!numLigne) { showToast('Veuillez selectionner une ligne.'); return; }
+    if (!depCode)  { showToast('Veuillez choisir un arret de depart.'); return; }
+    if (!arrCode)  { showToast('Veuillez choisir un arret d\'arrivee.'); return; }
+    if (depCode === arrCode) { showToast('Depart et arrivee identiques.'); return; }
 
-    // Éviter les doublons
     const doublon = panier.find(t => t.numLigne === numLigne && t.depCode === depCode && t.arrCode === arrCode);
-    if (doublon) { showToast('Ce trajet est déjà dans le panier.'); return; }
+    if (doublon) { showToast('Ce trajet est deja dans le panier.'); return; }
 
     const id = Date.now();
     panier.push({ id, numLigne, depCode, depNom, arrCode, arrNom });
 
-    // Marquer la ligne comme sélectionnée sur la carte
     lignesSelectionnees.add(numLigne);
     surbrillanceLigne(numLigne);
 
     rafraichirPanier();
     switchTab('tab-trajets');
-    showToast(`✓ Trajet ligne ${numLigne} ajouté !`, 'success');
+    showToast('Trajet ligne ' + numLigne + ' ajoute.', 'success');
 }
 
 function retirerTrajet(id) {
@@ -1361,7 +1467,6 @@ function retirerTrajet(id) {
     if (idx !== -1) {
         const numLigne = panier[idx].numLigne;
         panier.splice(idx, 1);
-        // Retirer surbrillance si plus aucun trajet de cette ligne
         if (!panier.find(t => t.numLigne === numLigne)) {
             lignesSelectionnees.delete(numLigne);
             surbrillanceLigne(null);
@@ -1375,22 +1480,20 @@ function viderPanier() {
     panier = [];
     lignesSelectionnees.clear();
     Object.entries(lignePolylines).forEach(([num, entry]) => {
-        entry.poly.setStyle({ weight: entry.isB ? 3 : 4, opacity: 0.82 });
+        entry.poly.setStyle({ weight: entry.isB ? 3 : 4, opacity: 0.85 });
     });
     rafraichirPanier();
-    showToast('Panier vidé.');
+    showToast('Panier vide.');
 }
 
 function rafraichirPanier() {
     const container = document.getElementById('trajets-panier');
     const count = panier.length;
 
-    // Badge onglet
     const badge = document.getElementById('tab-count-badge');
     badge.textContent = count;
     badge.style.display = count > 0 ? 'inline' : 'none';
 
-    // Compteur sur carte
     const counter = document.getElementById('trajets-counter');
     document.getElementById('trajets-count').textContent = count;
     counter.classList.toggle('visible', count > 0);
@@ -1400,25 +1503,23 @@ function rafraichirPanier() {
             Aucun trajet — cliquez une ligne sur la carte
         </p>`;
         document.getElementById('itineraire-list').innerHTML = `<p style="color:#adb5bd;font-size:0.85rem;text-align:center;padding:12px 0;">
-            Ajoutez des trajets pour voir l'itinéraire
+            Ajoutez des trajets pour voir l'itineraire
         </p>`;
         return;
     }
 
-    // Carte panier
     container.innerHTML = '';
     panier.forEach(t => {
         const card = document.createElement('div');
         card.className = 'trajet-card';
         card.innerHTML = `
             <span class="tc-badge" style="background:${getCouleurLigne(t.numLigne)}">Ligne ${t.numLigne}</span>
-            <span class="tc-route">${t.depNom} → ${t.arrNom}</span>
+            <span class="tc-route">${t.depNom} — ${t.arrNom}</span>
             <button class="tc-remove" title="Retirer" onclick="retirerTrajet(${t.id})">×</button>
         `;
         container.appendChild(card);
     });
 
-    // Itinéraire
     mettreAJourItineraire();
 }
 
@@ -1427,24 +1528,21 @@ function mettreAJourItineraire() {
     list.innerHTML = '';
     panier.forEach((t, i) => {
         const color = getCouleurLigne(t.numLigne);
-        // Arrêts intermédiaires pour cette portion
         const arrets = COMMUNES_BDD
             .filter(c => (c['LIG_NUM'] || '').trim() === t.numLigne)
             .map(c => c['COM_NOM_ARRIVEE'] || '').filter(Boolean);
 
-        // Départ
         const stopDep = document.createElement('div');
         stopDep.className = 'itin-stop';
         stopDep.innerHTML = `
             <div class="itin-dot terminus" style="border-color:${color};background:${color};"></div>
             <div>
                 <div class="itin-label">${t.depNom}</div>
-                <div class="itin-meta">Départ — Ligne ${t.numLigne}</div>
+                <div class="itin-meta">Depart — Ligne ${t.numLigne}</div>
             </div>
         `;
         list.appendChild(stopDep);
 
-        // Arrêts intermédiaires (max 3 affichés)
         const arretsUniq = [...new Set(arrets)].slice(0, 3);
         arretsUniq.forEach(nom => {
             const stop = document.createElement('div');
@@ -1458,23 +1556,21 @@ function mettreAJourItineraire() {
             list.appendChild(stop);
         });
 
-        // Arrivée
         const stopArr = document.createElement('div');
         stopArr.className = 'itin-stop';
         stopArr.innerHTML = `
             <div class="itin-dot terminus" style="border-color:${color};background:${color};"></div>
             <div>
                 <div class="itin-label">${t.arrNom}</div>
-                <div class="itin-meta">Arrivée</div>
+                <div class="itin-meta">Arrivee</div>
             </div>
         `;
         list.appendChild(stopArr);
 
-        // Séparateur entre trajets
         if (i < panier.length - 1) {
             const sep = document.createElement('div');
             sep.style.cssText = 'margin:6px 0 6px 26px;font-size:0.72rem;color:#adb5bd;font-style:italic;';
-            sep.textContent = '— correspondance —';
+            sep.textContent = 'correspondance';
             list.appendChild(sep);
         }
     });
@@ -1501,13 +1597,11 @@ function soumettreTousLesTrajets() {
     const hidden = document.getElementById('hidden-trajets-container');
     hidden.innerHTML = '';
 
-    // Infos client
     hidden.innerHTML += `<input type="hidden" name="nom" value="${escAttr(nom)}">`;
     hidden.innerHTML += `<input type="hidden" name="prenom" value="${escAttr(prenom)}">`;
     hidden.innerHTML += `<input type="hidden" name="telephone" value="${escAttr(tel)}">`;
     hidden.innerHTML += `<input type="hidden" name="email" value="${escAttr(email)}">`;
 
-    // Multi-trajets (tableaux)
     panier.forEach(t => {
         hidden.innerHTML += `<input type="hidden" name="Num_Ligne[]" value="${escAttr(t.numLigne)}">`;
         hidden.innerHTML += `<input type="hidden" name="Com_depart[]" value="${escAttr(t.depCode)}">`;
@@ -1528,19 +1622,29 @@ function afficherInfoArret(nomArret, lignesPassant) {
     switchTab('tab-info');
     ouvrirPanel();
     const div = document.getElementById('tab-info-content');
-    let html = `<p style="font-weight:700;font-size:0.97rem;margin-bottom:8px;">📍 ${nomArret}</p>`;
-    html += `<p style="font-size:0.82rem;color:#6c757d;margin-bottom:8px;">${lignesPassant.length} ligne(s) passent par cet arrêt :</p>`;
+    let html = `<p style="font-weight:700;font-size:0.97rem;margin-bottom:8px;">${nomArret}</p>`;
+    html += `<p style="font-size:0.82rem;color:#6c757d;margin-bottom:8px;">${lignesPassant.length} ligne(s) passent par cet arret :</p>`;
     if (lignesPassant.length) {
         html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
         lignesPassant.forEach(l => {
-            const color = getCouleurLigne(l.num);
-            html += `<span class="filtre-badge" style="background:${color};cursor:pointer;" onclick="ouvrirPanelLigne('${l.num}','${l.dep_nom}','${l.arr_nom}','${l.dep_insee}','${l.arr_insee}')">
+            const color = l.color || getCouleurLigne(l.num);
+            html += `<span class="filtre-badge" style="background:${color};cursor:pointer;" onclick="ouvrirPanelLigne('${l.num}','${l.dep_nom}','${l.arr_nom}','','')">
                 Ligne ${l.num}
             </span>`;
         });
         html += '</div>';
+        html += '<div style="margin-top:10px;">';
+        lignesPassant.forEach(l => {
+            const color = l.color || getCouleurLigne(l.num);
+            html += `<div style="font-size:0.8rem;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+                <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+                <span style="font-weight:600;">Ligne ${l.num}</span>
+                <span style="color:#6c757d;">${l.dep_nom} — ${l.arr_nom}</span>
+            </div>`;
+        });
+        html += '</div>';
     } else {
-        html += '<p style="color:#adb5bd;font-size:0.83rem;">Aucune ligne trouvée.</p>';
+        html += '<p style="color:#adb5bd;font-size:0.83rem;">Aucune ligne trouvee.</p>';
     }
     div.innerHTML = html;
 }
@@ -1557,14 +1661,14 @@ function afficherInfoLigne(numLigne, depNom, arrNom) {
     let html = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <span class="filtre-badge" style="background:${color};">Ligne ${numLigne}</span>
-            <span style="font-size:0.87rem;font-weight:600;">${depNom} → ${arrNom}</span>
+            <span style="font-size:0.87rem;font-weight:600;">${depNom} — ${arrNom}</span>
         </div>
         <div style="font-size:0.83rem;color:#6c757d;margin-bottom:8px;">
-            ${nbArrets > 0 ? `${nbArrets} arrêts recensés` : 'Trajet direct'}
+            ${nbArrets > 0 ? `${nbArrets} arrets recenses` : 'Trajet direct'}
         </div>
         <a href="horaires.php?lig_num=${encodeURIComponent(numLigne)}" target="_blank"
            style="font-size:0.83rem;color:var(--viking-red);text-decoration:none;font-weight:600;">
-            📅 Voir les horaires →
+            Voir les horaires
         </a>
     `;
     div.innerHTML = html;
@@ -1592,7 +1696,6 @@ searchInput.addEventListener('input', () => {
 
     if (!resultats.length) { searchList.classList.remove('open'); return; }
 
-    // Compter les lignes passant par chaque commune
     resultats.forEach(nom => {
         const lignesIci = LIGNES_BDD.filter(l =>
             normaliser(l.dep_nom).includes(normaliser(nom)) ||
@@ -1603,7 +1706,7 @@ searchInput.addEventListener('input', () => {
         item.className = 'autocomplete-item';
         item.setAttribute('role', 'option');
         item.innerHTML = `
-            <span>📍 ${nom}</span>
+            <span>${nom}</span>
             ${lignesIci > 0 ? `<span class="ac-badge">${lignesIci} ligne${lignesIci > 1 ? 's' : ''}</span>` : ''}
         `;
         item.addEventListener('click', () => zoomerSurCommune(nom));
@@ -1613,7 +1716,6 @@ searchInput.addEventListener('input', () => {
     searchList.classList.add('open');
 });
 
-// Navigation clavier dans la liste
 searchInput.addEventListener('keydown', (e) => {
     const items = searchList.querySelectorAll('.autocomplete-item');
     if (e.key === 'ArrowDown') {
@@ -1649,12 +1751,11 @@ document.addEventListener('click', (e) => {
 function zoomerSurCommune(nom) {
     searchList.classList.remove('open');
     const coord = getCoordsByNom(nom);
-    if (!coord) { showToast(`Commune "${nom}" introuvable.`); return; }
+    if (!coord) { showToast('Commune "' + nom + '" introuvable.'); return; }
     searchInput.value = coord.nom;
 
     map.flyTo([coord.lat, coord.lng], 12, { duration: 1.2 });
 
-    // Pulsation du marqueur correspondant
     const key = Object.keys(arretMarkers).find(k => {
         const m = arretMarkers[k];
         return normaliser(m.nom).includes(normaliser(nom)) || normaliser(nom).includes(normaliser(m.nom));
@@ -1662,22 +1763,21 @@ function zoomerSurCommune(nom) {
     if (key) {
         const marker = arretMarkers[key].marker;
         marker.openTooltip();
-        setTimeout(() => marker.closeTooltip(), 2000);
+        setTimeout(() => marker.closeTooltip(), 3000);
     }
 
-    // Toast
     const lignesIci = LIGNES_BDD.filter(l =>
         normaliser(l.dep_nom).includes(normaliser(nom)) ||
         normaliser(l.arr_nom).includes(normaliser(nom))
     );
     const msg = lignesIci.length
-        ? `📍 ${coord.nom} — ${lignesIci.length} ligne(s) disponible(s)`
-        : `📍 ${coord.nom}`;
+        ? `${coord.nom} — ${lignesIci.length} ligne(s) disponible(s)`
+        : coord.nom;
     showToast(msg, 'info');
 }
 
 // ================================================================
-// TOAST NOTIFICATIONS (BONUS)
+// TOAST NOTIFICATIONS
 // ================================================================
 function showToast(msg, type = 'neutral') {
     const toast = document.getElementById('commune-zoom-toast');
@@ -1694,26 +1794,25 @@ function showToast(msg, type = 'neutral') {
 // ================================================================
 window.addEventListener('resize', () => map.invalidateSize());
 
-// Démarrage : montrer le bouton toggle
 document.getElementById('btn-toggle-panel').classList.add('visible');
 
-// Bouton "Ajouter au panier" style (dans tab-trajet)
+// Bouton "Ajouter au panier" injecté sous les selects
 const btnAjout = document.createElement('button');
 btnAjout.type = 'button';
 btnAjout.id = 'btn-ajouter-au-panier';
-btnAjout.textContent = '+ Ajouter ce trajet au panier';
+btnAjout.textContent = 'Ajouter ce trajet au panier';
 btnAjout.style.cssText = `
     width:100%;background:var(--viking-red);border:none;color:#fff;
     font-weight:700;font-size:0.95rem;border-radius:8px;padding:11px 0;
     cursor:pointer;margin-top:4px;transition:background 0.2s;
+    text-transform:uppercase;letter-spacing:0.04em;
 `;
 btnAjout.onmouseover = () => btnAjout.style.background = '#a50820';
 btnAjout.onmouseout  = () => btnAjout.style.background = 'var(--viking-red)';
 btnAjout.onclick = ajouterTrajetAuPanier;
 
-// Insérer après select-arrivee-panel
-const selArr = document.getElementById('select-arrivee-panel');
-selArr.closest('.mb-3').after(btnAjout);
+const selArrEl = document.getElementById('select-arrivee-panel');
+selArrEl.closest('.mb-3').after(btnAjout);
 </script>
 </body>
 </html>
