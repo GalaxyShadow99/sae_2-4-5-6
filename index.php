@@ -20,7 +20,7 @@ include_once("./includes/head.php");
                 <div class="mb-3">
 					<span class="badge px-3 py-2 rounded-pill fw-semibold text-uppercase tracking-wider" 
 						  style="background-color: rgba(210, 10, 40, 0.1); color: rgb(210, 10, 40);">
-						DeviK
+						Bienvenue
 					</span>
 				</div>
                 <h1 class="display-5 fw-bold text-dark mb-3">

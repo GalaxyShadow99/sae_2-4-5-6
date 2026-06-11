@@ -27,6 +27,15 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
     th[data-sort]:hover {
         background-color: #e9ecef !important;
     }
+    
+    .table {
+        font-size: 0.95rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 1rem !important;
+    }
     th[data-sort]::after {
         content: " ↕";
         font-size: 0.8em;
@@ -157,7 +166,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                                             
                                             <td class="pe-4 text-end">
                                                 <?php if ($isAnonyme): ?>
-                                                    <a href="admin_reservations.php?cli_num=0" class="btn btn-sm btn-outline-secondary">
+                                                    <a href="admin_modifier_client.php?cli_num=0" class="btn btn-sm btn-outline-secondary">
                                                         <i class="bi bi-eye"></i> Voir ses réservations
                                                     </a>
                                                 <?php else: ?>

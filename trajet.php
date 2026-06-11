@@ -317,7 +317,7 @@ if ($depart && $arrivee && $depart !== $arrivee && $conn) {
 <?php include_once("./includes/head.php"); ?>
 <body class="d-flex flex-column h-100 bg-light text-dark">
     <?php include_once("./includes/topbar.php"); ?>
-    <main class="container my-5 flex-shrink-0">
+    <main class="container-fluid my-5 flex-shrink-0 px-4">
         <div class="row mb-4 text-center">
             <div class="col-lg-8 mx-auto">
                 <div class="mb-3">
@@ -331,7 +331,7 @@ if ($depart && $arrivee && $depart !== $arrivee && $conn) {
             </div>
         </div>
 
-        <div class="p-4 p-md-5 bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 mb-5">
+        <div class="p-4 p-md-5 bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 mb-5" style="max-width:1200px; margin:0 auto;">
             <form method="GET" action="trajet.php" class="row gy-3 align-items-end">
                 <div class="col-md-4">
                     <label for="depart" class="form-label fw-semibold text-dark">Départ</label>
@@ -378,7 +378,7 @@ if ($depart && $arrivee && $depart !== $arrivee && $conn) {
                     <i class="bi bi-info-circle me-2"></i> Aucun itinéraire trouvé après l'heure demandée.
                 </div>
             <?php else: ?>
-                <div class="row gy-4">
+                <div class="row gy-4" style="max-width:1400px; margin:0 auto;">
                     <div class="col-lg-6">
                         <div class="p-4 bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 h-100">
                             <h2 class="fw-bold text-dark h5 mb-4 text-uppercase tracking-wider text-center">
