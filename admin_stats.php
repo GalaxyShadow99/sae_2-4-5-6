@@ -51,6 +51,14 @@ $trajets_pop       = TrajetsPopulaires($conn);
     }
     .table tbody tr:hover { background-color: rgba(210, 10, 40, 0.05); }
     .rank { color: rgb(210, 10, 40); font-weight: 600; width: 30px; }
+    .btn-voir { 
+        color: rgb(210, 10, 40); 
+        border-color: rgb(210, 10, 40); 
+    }
+    .btn-voir:hover { 
+        background-color: rgb(210, 10, 40); 
+        color: white; 
+    }
 </style>
 
 <body>
@@ -87,7 +95,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
 
         <!-- Meilleurs clients -->
         <div id="tab-clients">
-            <p class="section-title">Top 10 clients par nombre de réservations</p>
+            <p class="section-title">Top clients par nombre de réservations</p>
             <div class="card border-0 shadow-sm">
                 <table class="table table-hover mb-0">
                     <thead>
@@ -95,7 +103,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </thead>
                     <tbody>
                         <?php foreach ($meilleurs_clients as $i => $c): ?>
-                        <tr>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td class="rank"><?= $i + 1 ?></td>
                             <td><?= htmlspecialchars($c['CLI_NOM']) ?></td>
                             <td><?= htmlspecialchars($c['CLI_PRENOM']) ?></td>
@@ -106,6 +114,13 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </tbody>
                 </table>
             </div>
+            <?php if (count($meilleurs_clients) > 10): ?>
+            <div class="text-center mt-2">
+                <button class="btn btn-sm btn-outline-secondary btn-voir" onclick="toggleExtra(this, 'clients')">
+                    Voir tout (<?= count($meilleurs_clients) ?> résultats)
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Lignes utilisées -->
@@ -118,7 +133,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </thead>
                     <tbody>
                         <?php foreach ($lignes_utilisees as $i => $l): ?>
-                        <tr>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td class="rank"><?= $i + 1 ?></td>
                             <td>Ligne <?= trim($l['LIG_NUM']) ?></td>
                             <td><?= $l['NB_UTILISATIONS'] ?></td>
@@ -127,6 +142,13 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </tbody>
                 </table>
             </div>
+            <?php if (count($lignes_utilisees) > 10): ?>
+            <div class="text-center mt-2">
+                <button class="btn btn-sm btn-outline-secondary btn-voir" onclick="toggleExtra(this, 'lignes')">
+                    Voir tout (<?= count($lignes_utilisees) ?> résultats)
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Réservations par période -->
@@ -138,8 +160,8 @@ $trajets_pop       = TrajetsPopulaires($conn);
                         <tr><th>Période</th><th>Réservations</th></tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($reservations as $r): ?>
-                        <tr>
+                        <?php foreach ($reservations as $i => $r): ?>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td><?= $r['PERIODE'] ?></td>
                             <td><?= $r['NB_RESERVATIONS'] ?></td>
                         </tr>
@@ -147,6 +169,13 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </tbody>
                 </table>
             </div>
+            <?php if (count($reservations) > 10): ?>
+            <div class="text-center mt-2">
+                <button class="btn btn-sm btn-outline-secondary btn-voir" onclick="toggleExtra(this, 'periodes')">
+                    Voir tout (<?= count($reservations) ?> résultats)
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Chiffre d'affaires -->
@@ -159,7 +188,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </thead>
                     <tbody>
                         <?php foreach ($ca_lignes as $i => $l): ?>
-                        <tr>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td class="rank"><?= $i + 1 ?></td>
                             <td>Ligne <?= trim($l['LIG_NUM']) ?></td>
                             <td><?= number_format($l['CA_TOTAL'], 2) ?> €</td>
@@ -168,11 +197,18 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </tbody>
                 </table>
             </div>
+            <?php if (count($ca_lignes) > 10): ?>
+            <div class="text-center mt-2">
+                <button class="btn btn-sm btn-outline-secondary btn-voir" onclick="toggleExtra(this, 'ca')">
+                    Voir tout (<?= count($ca_lignes) ?> résultats)
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Clients fidèles -->
         <div id="tab-points" style="display:none">
-            <p class="section-title">Top 10 clients par points fidélité</p>
+            <p class="section-title">Top clients par points fidélité</p>
             <div class="card border-0 shadow-sm">
                 <table class="table table-hover mb-0">
                     <thead>
@@ -180,7 +216,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </thead>
                     <tbody>
                         <?php foreach ($clients_points as $i => $c): ?>
-                        <tr>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td class="rank"><?= $i + 1 ?></td>
                             <td><?= htmlspecialchars($c['CLI_NOM']) ?></td>
                             <td><?= htmlspecialchars($c['CLI_PRENOM']) ?></td>
@@ -191,6 +227,13 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </tbody>
                 </table>
             </div>
+            <?php if (count($clients_points) > 10): ?>
+            <div class="text-center mt-2">
+                <button class="btn btn-sm btn-outline-secondary btn-voir" onclick="toggleExtra(this, 'points')">
+                    Voir tout (<?= count($clients_points) ?> résultats)
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Heures de pointe -->
@@ -203,7 +246,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </thead>
                     <tbody>
                         <?php foreach ($heures_pointe as $i => $h): ?>
-                        <tr>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td class="rank"><?= $i + 1 ?></td>
                             <td><?= $h['HEURE'] ?>h00</td>
                             <td><?= $h['NB'] ?></td>
@@ -224,7 +267,7 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </thead>
                     <tbody>
                         <?php foreach ($trajets_pop as $i => $t): ?>
-                        <tr>
+                        <tr <?= $i >= 10 ? 'class="extra" style="display:none"' : '' ?>>
                             <td class="rank"><?= $i + 1 ?></td>
                             <td><?= htmlspecialchars($t['DEPART']) ?></td>
                             <td><?= htmlspecialchars($t['ARRIVEE']) ?></td>
@@ -234,6 +277,13 @@ $trajets_pop       = TrajetsPopulaires($conn);
                     </tbody>
                 </table>
             </div>
+            <?php if (count($trajets_pop) > 10): ?>
+            <div class="text-center mt-2">
+                <button class="btn btn-sm btn-outline-secondary btn-voir" onclick="toggleExtra(this, 'trajets')">
+                    Voir tout (<?= count($trajets_pop) ?> résultats)
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
     </main>
@@ -247,6 +297,15 @@ $trajets_pop       = TrajetsPopulaires($conn);
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById('tab-' + tab).style.display = 'block';
         el.classList.add('active');
+    }
+
+    function toggleExtra(btn, tab) {
+        const rows = document.querySelectorAll('#tab-' + tab + ' tr.extra');
+        const visible = rows[0].style.display !== 'none';
+        rows.forEach(r => r.style.display = visible ? 'none' : '');
+        btn.textContent = visible
+            ? 'Voir tout (' + rows.length + ' résultats)'
+            : 'Réduire';
     }
     </script>
 </body>
