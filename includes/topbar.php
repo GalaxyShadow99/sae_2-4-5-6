@@ -60,7 +60,7 @@ if (isset($_SESSION['user_id'])) {
                 <?php if (isset($_SESSION['user_id'])): ?>
                     
                     <?php if ($isAdmin): ?>
-                        <a href="admin_stats.php" class="btn text-dark px-3 py-2 fw-bold rounded-3 shadow-sm transition hover-scale" 
+                        <a href="admin_dashboard.php" class="btn text-dark px-3 py-2 fw-bold rounded-3 shadow-sm transition hover-scale" 
                             style="background-color: #ffc107; border: 1px solid #e0a800;">
                             <i class="bi bi-shield-lock me-1"></i> Admin
                         </a>
