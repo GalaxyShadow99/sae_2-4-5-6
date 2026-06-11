@@ -261,8 +261,8 @@ $trajets_duree_affiches = [];
 
 if ($depart && $arrivee && $depart !== $arrivee && $conn) {
     $graphe = getGraphePondere($conn, []);
-    $candidats_distance = kShortest($graphe, $depart, $arrivee, 20, "distance");
-    $candidats_duree = kShortest($graphe, $depart, $arrivee, 20, "duree");
+    $candidats_distance = kShortest($graphe, $depart, $arrivee, 5, "distance");
+    $candidats_duree = kShortest($graphe, $depart, $arrivee, 5, "duree");
 
     foreach ($candidats_distance as $trajet) {
         $horaires = calculerHorairesReels($conn, $trajet['chemin'], $graphe, $heure);
