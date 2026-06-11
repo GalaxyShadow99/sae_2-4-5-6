@@ -45,8 +45,13 @@ if (isset($_SESSION['user_id'])) {
         <div class="collapse navbar-collapse col-lg-8" id="navbarViking">
 
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1 gap-lg-3 col-lg-6 justify-content-lg-center"> 
+                
+
                 <li class="nav-item">
                     <a class="nav-link active px-3 rounded-2 transition" aria-current="page" href="index.php">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 rounded-2 transition" href="trajet.php">Trajet</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-2 transition" href="lignes.php">Lignes</a>
