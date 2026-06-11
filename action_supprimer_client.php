@@ -9,7 +9,6 @@ require_once './bdd/BddClientUtils.php';
 
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
-// réservé aux administrateurs 
 if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
     header('Location: connexion.php');
     exit();

@@ -5,6 +5,10 @@ include_once("./bdd/BddConnexionUtils.php");
 include_once("./bdd/BddAdminStatsUtils.php");
 
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
+if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
+    header('Location: connexion.php');
+    exit();
+}
 
 if (!isset($_SESSION['user_id'])) { header('Location: connexion.php'); exit(); }
 
