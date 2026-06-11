@@ -122,3 +122,26 @@ function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $t
 
     return $ok;
 }
+
+function reserverAvecCompte($conn, $cli_num,$tarNum,$prix) {
+    
+$res_num = getProchainResNum($conn, $cli_num);
+
+    $sql = "INSERT INTO vik_reservation 
+                (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
+            VALUES 
+                (:cli_num, :res_num, :tar_num, SYSDATE, 0, :prix)";
+    
+    
+    $stmt = preparerRequetePDO($conn, $sql);
+    return $stmt->execute([
+        'cli_num' => $cli_num,
+        'res_num' => $res_num,
+        'tar_num' => $tarNum,
+        'prix'    => $prix
+    ]);
+    
+
+}
+
+
