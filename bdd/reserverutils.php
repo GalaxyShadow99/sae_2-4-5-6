@@ -26,87 +26,99 @@ function ListeCommunesLignes($conn) {
 
 function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
     try {
-        $numLigne = trim((string)$numLigne);
-        $comDepart = trim((string)$comDepart);
+        $numLigne   = trim((string)$numLigne);
+        $comDepart  = trim((string)$comDepart);
         $comArrivee = trim((string)$comArrivee);
 
-        $sqlToutesEtapes = "SELECT TRIM(COM_CODE_INSEE_DEPART) AS DEPART, 
-                                   TRIM(COM_CODE_INSEE_ARRIVEE) AS ARRIVEE, 
-                                   NVL(ETA_DISTANCE, 0) AS DISTANCE 
-                            FROM vik_etape 
-                            WHERE TRIM(LIG_NUM) = TRIM(:ligne)";
+        if ($comDepart === $comArrivee) {
+            return false;
+        }
+
+        // 1. On récupère la CARTE PHYSIQUE pure de la ligne (on ignore les horaires et les doublons)
+        // On exclut les (null) et on remplace la virgule d'Oracle par un point
+        $sqlToutesEtapes = "SELECT DISTINCT 
+                                   TRIM(COM_CODE_INSEE_ARRET) AS DEPART, 
+                                   TRIM(COM_CODE_INSEE_SUIVANT) AS ARRIVEE, 
+                                   REPLACE(NOE_DISTANCE_PROCHAIN, ',', '.') AS DISTANCE 
+                            FROM vik_noeud 
+                            WHERE TRIM(LIG_NUM) = :ligne
+                              AND NOE_DISTANCE_PROCHAIN IS NOT NULL";
         
         $stmt = preparerRequetePDO($conn, $sqlToutesEtapes);
         $stmt->execute(['ligne' => $numLigne]);
         $etapes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $distanceFinale = 5; // Prix minimum de secours
+        if (empty($etapes)) {
+            return false;
+        }
 
-        if (!empty($etapes)) {
-            // 1. On construit le "Graphe" (la carte complète du réseau pour cette ligne)
-            $graphe = [];
-            foreach ($etapes as $etape) {
-                $u = $etape['DEPART'];
-                $v = $etape['ARRIVEE'];
-                $dist = (float)$etape['DISTANCE'];
-                
-                // On crée les routes dans les DEUX sens pour éviter les pièges
-                $graphe[$u][] = ['noeud' => $v, 'distance' => $dist];
-                $graphe[$v][] = ['noeud' => $u, 'distance' => $dist];
-            }
+        // 2. Construction du "GPS" (Graphe spatial)
+        $graphe = [];
+        foreach ($etapes as $etape) {
+            $u = $etape['DEPART'];
+            $v = $etape['ARRIVEE'];
+            $dist = (float)$etape['DISTANCE'];
 
-            // 2. Exploration intelligente (Algorithme BFS - Recherche en largeur)
-            $file = [ ['noeud' => $comDepart, 'distCumulee' => 0] ]; // Point de départ
-            $visites = [ $comDepart => true ]; // Mémoire des arrêts visités pour ne jamais faire demi-tour
+            if ($dist <= 0) continue;
 
-            while (!empty($file)) {
-                $courant = array_shift($file); // On avance au prochain arrêt
-                $u = $courant['noeud'];
-                $d = $courant['distCumulee'];
+            // On cartographie dans les deux sens pour être sûr de trouver le chemin
+            $graphe[$u][] = ['noeud' => $v, 'distance' => $dist];
+            $graphe[$v][] = ['noeud' => $u, 'distance' => $dist];
+        }
 
-                // Si on a atteint la destination finale !
-                if ($u === $comArrivee) {
-                    if ($d > 0) {
-                        $distanceFinale = $d; // On a notre VRAIE distance totale
-                    }
-                    break; 
-                }
+        // 3. Algorithme de calcul de la vraie distance entre Départ et Arrivée (Dijkstra)
+        $distances = [$comDepart => 0];
+        $aTraiter  = [$comDepart => 0];
 
-                // Sinon, on regarde les villes voisines
-                if (isset($graphe[$u])) {
-                    foreach ($graphe[$u] as $voisin) {
-                        $v = $voisin['noeud'];
-                        // Si on n'est pas encore passé par là, on y va
-                        if (!isset($visites[$v])) {
-                            $visites[$v] = true;
-                            $file[] = [
-                                'noeud' => $v, 
-                                'distCumulee' => $d + $voisin['distance']
-                            ];
-                        }
+        while (!empty($aTraiter)) {
+            // Trouver la ville la plus proche dans notre file
+            asort($aTraiter);
+            $u = array_key_first($aTraiter);
+            $d = $aTraiter[$u];
+            unset($aTraiter[$u]);
+
+            // Si on est arrivé, on s'arrête !
+            if ($u === $comArrivee) break;
+
+            if (isset($graphe[$u])) {
+                foreach ($graphe[$u] as $voisin) {
+                    $v = $voisin['noeud'];
+                    $nouvelleDist = $d + $voisin['distance'];
+
+                    if (!isset($distances[$v]) || $nouvelleDist < $distances[$v]) {
+                        $distances[$v] = $nouvelleDist;
+                        $aTraiter[$v]  = $nouvelleDist;
                     }
                 }
             }
         }
 
-        // 3. On va chercher le prix correspondant à la vraie distance finale
+        // 4. Vérification si une route a bien été trouvée
+        if (!isset($distances[$comArrivee]) || $distances[$comArrivee] <= 0) {
+            return false; 
+        }
+        $distanceFinale = $distances[$comArrivee];
+
+        // 5. Recherche du prix correspondant dans vik_tarif
         $sqlTarif = "SELECT TAR_NUM_TRANCHE, TAR_PRIX AS PRIX
                      FROM vik_tarif
                      WHERE TAR_MIN_DIST <= :distance
                        AND TAR_MAX_DIST >= :distance
                      FETCH FIRST 1 ROWS ONLY";
-                     
+
         $stmtTarif = preparerRequetePDO($conn, $sqlTarif);
         
-        // CORRECTION : On arrondit au nombre entier supérieur pour éviter les "trous" entre 10 et 11, 20 et 21, etc.
+        // On arrondit (ex: 20.4 -> 21) pour être sûr de tomber dans une tranche entière de la BDD
         $distanceArrondie = ceil($distanceFinale); 
         $stmtTarif->execute(['distance' => $distanceArrondie]);
         
         $resultat = $stmtTarif->fetch(PDO::FETCH_ASSOC);
+
         if ($resultat) {
-            $resultat['DISTANCE'] = $distanceFinale; // On sauvegarde la vraie distance !
+            $resultat['DISTANCE'] = $distanceFinale; 
             return $resultat;
         }
+
         return false;
 
     } catch (Exception $e) {
@@ -156,29 +168,55 @@ function getProchainResNum($conn) {
     return $row['PROCHAIN'];
 }
 
-function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $tarNum, $prix) {
+function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $tarNum, $prix, $distance = 0) {
     $cli_num = trouverOuCreerClient($conn, $nom, $prenom, $email);
     if (!$cli_num) return false;
 
     $res_num = getProchainResNum($conn);
 
+    // --- SÉCURITÉ ORACLE : On remplace le point PHP par la virgule Oracle pour les décimales ---
+    $prixOracle = str_replace('.', ',', (string)round((float)$prix, 2));
+    $distOracle = str_replace('.', ',', (string)round((float)$distance, 2));
+
+    // 1. Création de la réservation globale
     $sqlRes = "INSERT INTO vik_reservation 
                    (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
                VALUES 
                    (:cli_num, :res_num, :tar_num, SYSDATE, 0, :prix)";
     $stmt = preparerRequetePDO($conn, $sqlRes);
     $ok = $stmt->execute([
-        'cli_num' => $cli_num,
-        'res_num' => $res_num,
-        'tar_num' => $tarNum,
-        'prix'    => $prix ?? 0,
+        'cli_num' => (int)$cli_num,
+        'res_num' => (int)$res_num,
+        'tar_num' => $tarNum ? (int)$tarNum : null,
+        'prix'    => $prixOracle
     ]);
+
+    // 2. Insertion du détail du trajet dans VIK_ETAPE
+    if ($ok) {
+        $sqlEtape = "INSERT INTO vik_etape 
+                        (cli_num, res_num, lig_num, com_code_insee_depart, com_code_insee_arrivee, eta_distance, eta_heure) 
+                     VALUES 
+                        (:cli_num, :res_num, :ligne, :dep, :arr, :dist, SYSDATE)";
+        $stmtEtape = preparerRequetePDO($conn, $sqlEtape);
+        $stmtEtape->execute([
+            'cli_num' => (int)$cli_num, 
+            'res_num' => (int)$res_num, 
+            'ligne'   => $ligne, 
+            'dep'     => $dep, 
+            'arr'     => $arr, 
+            'dist'    => $distOracle
+        ]);
+    }
 
     return $ok;
 }
 
-function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0, $pointsUtilises = 0) {
+function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0, $pointsUtilises = 0, $ligne = '', $dep = '', $arr = '', $distance = 0) {
     $res_num = getProchainResNum($conn);
+
+    // --- SÉCURITÉ ORACLE : On force le type entier (int) et on adapte les décimales (virgules) ---
+    $prixOracle = str_replace('.', ',', (string)round((float)$prix, 2));
+    $distOracle = str_replace('.', ',', (string)round((float)$distance, 2));
 
     // 1. Insertion de la réservation dans l'historique
     $sqlResa = "INSERT INTO vik_reservation 
@@ -188,17 +226,32 @@ function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0, 
                 
     $stmtResa = preparerRequetePDO($conn, $sqlResa);
     $okResa = $stmtResa->execute([
-        'cli_num'       => $cli_num,
-        'res_num'       => $res_num,
-        'tar_num'       => $tarNum,
-        'points_gagnes' => $pointsGagnes, // On insère les points gagnés sur le ticket
-        'prix'          => $prix
+        'cli_num'       => (int)$cli_num,
+        'res_num'       => (int)$res_num,
+        'tar_num'       => $tarNum ? (int)$tarNum : null,
+        'points_gagnes' => (int)$pointsGagnes, 
+        'prix'          => $prixOracle
     ]);
 
-    // 2. Mise à jour du solde du client dans la base de données
-    if ($okResa && ($pointsGagnes > 0 || $pointsUtilises > 0)) {
-        // La cagnotte "En Cours" (EC) diminue si on utilise des points
-        // La cagnotte "Totale" (TOT) ne fait qu'augmenter pour l'historique
+    // 2. Insertion du détail du trajet dans VIK_ETAPE
+    if ($okResa && !empty($ligne)) {
+        $sqlEtape = "INSERT INTO vik_etape 
+                        (cli_num, res_num, lig_num, com_code_insee_depart, com_code_insee_arrivee, eta_distance, eta_heure) 
+                     VALUES 
+                        (:cli_num, :res_num, :ligne, :dep, :arr, :dist, SYSDATE)";
+        $stmtEtape = preparerRequetePDO($conn, $sqlEtape);
+        $stmtEtape->execute([
+            'cli_num' => (int)$cli_num, 
+            'res_num' => (int)$res_num, 
+            'ligne'   => $ligne, 
+            'dep'     => $dep, 
+            'arr'     => $arr, 
+            'dist'    => $distOracle
+        ]);
+    }
+
+    // 3. Mise à jour du solde du client
+    if ($okResa && ((int)$pointsGagnes > 0 || (int)$pointsUtilises > 0)) {
         $sqlUpdateClient = "UPDATE vik_client 
                             SET cli_nb_points_ec = NVL(cli_nb_points_ec, 0) + :points_gagnes - :points_utilises,
                                 cli_nb_points_tot = NVL(cli_nb_points_tot, 0) + :points_gagnes
@@ -206,9 +259,9 @@ function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0, 
                             
         $stmtUpdate = preparerRequetePDO($conn, $sqlUpdateClient);
         $stmtUpdate->execute([
-            'points_gagnes'   => $pointsGagnes,
-            'points_utilises' => $pointsUtilises,
-            'cli_num'         => $cli_num
+            'points_gagnes'   => (int)$pointsGagnes,
+            'points_utilises' => (int)$pointsUtilises,
+            'cli_num'         => (int)$cli_num
         ]);
     }
 
