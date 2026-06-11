@@ -46,16 +46,10 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
 <body class="d-flex flex-column h-100 bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container my-5 flex-shrink-0">
+    <main class="container mt-4 mb-5 flex-shrink-0">
         
         <div class="row mb-4 align-items-center">
             <div class="col-md-6">
-                <div class="mb-2">
-                    <span class="badge px-3 py-2 rounded-pill fw-semibold text-uppercase" 
-                          style="background-color: rgba(210, 10, 40, 0.1); color: rgb(210, 10, 40);">
-                        Espace Administrateur
-                    </span>
-                </div>
                 <a href="admin_dashboard.php" class="btn btn-outline-secondary mb-3">← Retour au dashboard</a>
                 <h1 class="display-6 fw-bold text-dark mb-0">Gestion des Clients</h1>
             </div>
