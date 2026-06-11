@@ -52,16 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header('Location: inscription.php');
                 exit;
             } else {
-                // cath error ORA-12899 d'oracle : value too large for column
-                if ($conn->errorInfo()[0] == '22001') {
-                    echo "Erreur : une des valeurs dépasse la taille maximale autorisée.";
-                    $error = "Erreur de saisie : une des valeurs est trop longue.";
-                } else {
-                echo "Erreur lors de l'insertion : " . $conn->errorInfo()[2];
                 $error = "Erreur de serveur : insertion échouée.";
             }
         }
-    }
     }
 }
 

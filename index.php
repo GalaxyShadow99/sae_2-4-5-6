@@ -67,6 +67,8 @@ include_once("./includes/head.php");
 
     </main>
 
+    <!-- Pour avoir accès à la base de données-->
+
     <?php include_once("./includes/footer.php"); ?>
     <?php include_once("./includes/jsIncludes.php"); ?>
 </body>

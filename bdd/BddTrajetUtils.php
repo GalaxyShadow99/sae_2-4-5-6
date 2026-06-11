@@ -45,3 +45,35 @@ function TrajetPlusRapideMemeLigne($conn, $code_insee_depart, $code_insee_arrive
     $stmt->execute(['depart' => $code_insee_depart, 'arrivee' => $code_insee_arrivee]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+function ListeToutesCommunes($conn) {
+  $sql = "SELECT COM_CODE_INSEE, COM_NOM FROM vik_commune ORDER BY COM_NOM ASC";
+  $stmt = preparerRequetePDO($conn, $sql);
+  $stmt->execute(['depart' ]);
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+/*=== POUR ETRE SUR ===*/
+
+function ListeNoeuds($conn) {
+  $cur = $conn->query("select com_code_insee_arret, 
+                      com_code_insee_suivant, 
+                      lig_num, 
+                      noe_heure_passage,
+                      noe_distance_prochain, 
+                      noe_duree_prochain from vik_noeud");
+  return $cur->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function RecupHoraireSup($conn, $ligne, $commune, $heure) {
+  $sql = "SELECT TO_CHAR(noe_heure_passage, 'HH24:MI') AS heure_passage
+          FROM vik_noeud
+          WHERE lig_num = :ligne
+            AND com_code_insee_arret = :commune
+            AND noe_heure_passage > TO_DATE(:heure, 'HH24:MI')";
+  $stmt = preparerRequetePDO($conn, $sql);
+  $stmt->execute(['ligne' => $ligne, 'commune' => $commune, 'heure' => $heure]);
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+?>

@@ -1,15 +1,4 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25 sticky-top">
-	
-	<style>
-		.btn {
-			transition: transform 0.3s ease;
-		}
-
-		.btn:hover {
-			transform: scale(1.07);
-		}
-	</style>
-
     <div class="container"> 
 
         <div class="col-lg-4 d-flex justify-content-start align-items-center">
@@ -46,22 +35,12 @@
 
             <div class="d-flex align-items-center gap-2 mb-3 mb-lg-0 col-lg-6 justify-content-lg-end">
                 <?php if (isset($_SESSION['user_id'])): ?>
-					<a href="profil.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 
-                        style="background-color: rgb(33, 37, 41); border: 1px solid rgb(210, 10, 40);">
-                        Mon profil
-                    </a>
                     <a href="deconnexion.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 
                         style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
                         Déconnexion
                     </a>
-                    <a href="profil.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 
-                        style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
-                        Mon Compte
-                    </a>
-
                 <?php else: ?>
-                    <a href="connexion.php" class="btn btn-link text-white text-decoration-none px-3 py-2 transition hover-scale"
-                    style="background-color: rgb(33, 37, 41); border: 1px solid rgb(210, 10, 40);">
+                    <a href="connexion.php" class="btn btn-link text-white text-decoration-none px-3 py-2 transition hover-scale">
                         Connexion
                     </a>
                     <a href="inscription.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 

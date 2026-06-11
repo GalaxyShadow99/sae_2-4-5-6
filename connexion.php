@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($client) {
             $_SESSION['user_id']     = $client['CLI_NUM'];
             $_SESSION['user_prenom'] = $client['CLI_PRENOM'];
-            $_SESSION['login_success'] = "Bienvenue " . $client['CLI_PRENOM'] . " !";
+            $_SESSION['login_success'] = "Bienvenue " . $client['CLI_PRENOM'] . " ! .";
             header('Location: connexion.php');
             exit();
         }

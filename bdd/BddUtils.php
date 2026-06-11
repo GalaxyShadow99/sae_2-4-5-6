@@ -7,3 +7,4 @@ require_once __DIR__ . '/BddTrajetUtils.php';
 require_once __DIR__ . '/Inscription_utils.php';
 require_once __DIR__ . '/LigneUtils.php';
 
+?>
