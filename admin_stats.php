@@ -6,7 +6,6 @@ include_once("./bdd/BddAdminStatsUtils.php");
 
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
-// Vérification admin
 if (!isset($_SESSION['user_id'])) {
     header('Location: connexion.php');
     exit();
@@ -23,7 +22,6 @@ if ($result['NB'] == 0) {
     exit();
 }
 
-// Récupération des stats
 $meilleurs_clients = MeilleursClients($conn);
 $lignes_utilisees  = LignesPlusUtilisees($conn);
 $reservations      = ReservationsParPeriode($conn);
@@ -33,21 +31,91 @@ $reservations      = ReservationsParPeriode($conn);
 <html lang="fr">
 <?php include_once("./includes/head.php"); ?>
 
+<style>
+    .stat-card-header {
+        background-color: #1a1a2e;
+        color: white;
+        border-left: 4px solid rgb(210, 10, 40);
+        padding: 12px 16px;
+        font-weight: 500;
+        font-size: 15px;
+    }
+    .badge-rank {
+        background-color: rgb(210, 10, 40);
+        color: white;
+        font-size: 12px;
+        padding: 3px 8px;
+        border-radius: 99px;
+    }
+    .badge-ligne {
+        background-color: #1a1a2e;
+        color: rgb(255, 220, 0);
+        font-size: 13px;
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-family: monospace;
+    }
+    .table thead th {
+        background-color: #1a1a2e;
+        color: rgb(255, 220, 0);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+    .table tbody tr:hover {
+        background-color: rgba(210, 10, 40, 0.05);
+    }
+    .page-header {
+        border-left: 5px solid rgb(210, 10, 40);
+        padding-left: 16px;
+    }
+    .metric-card {
+        border-top: 3px solid rgb(210, 10, 40);
+        border-radius: 8px;
+    }
+</style>
+
 <body>
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container mt-5">
-        <h1 class="mb-4 fw-bold">Statistiques</h1>
+    <main class="container mt-5 mb-5">
+
+        <div class="page-header mb-5">
+            <h1 class="fw-bold mb-1">Tableau de bord</h1>
+            <p class="text-muted mb-0">Statistiques du réseau Viking Transport</p>
+        </div>
+
+        <!-- Cartes résumé -->
+        <div class="row g-3 mb-5">
+            <div class="col-md-4">
+                <div class="card metric-card shadow-sm p-3 text-center">
+                    <p class="text-muted small mb-1">Clients suivis</p>
+                    <h3 class="fw-bold mb-0"><?= count($meilleurs_clients) ?></h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card metric-card shadow-sm p-3 text-center">
+                    <p class="text-muted small mb-1">Lignes actives</p>
+                    <h3 class="fw-bold mb-0"><?= count($lignes_utilisees) ?></h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card metric-card shadow-sm p-3 text-center">
+                    <p class="text-muted small mb-1">Périodes enregistrées</p>
+                    <h3 class="fw-bold mb-0"><?= count($reservations) ?></h3>
+                </div>
+            </div>
+        </div>
 
         <!-- Meilleurs clients -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header fw-semibold" style="background-color:#2c3e50; color:white;">
-                Meilleurs clients
-            </div>
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="stat-card-header">Meilleurs clients</div>
             <div class="card-body p-0">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
+                            <th class="ps-3">#</th>
                             <th>Nom</th>
                             <th>Prénom</th>
                             <th>Points</th>
@@ -55,11 +123,12 @@ $reservations      = ReservationsParPeriode($conn);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($meilleurs_clients as $c): ?>
+                        <?php foreach ($meilleurs_clients as $i => $c): ?>
                         <tr>
-                            <td><?= $c['CLI_NOM'] ?></td>
-                            <td><?= $c['CLI_PRENOM'] ?></td>
-                            <td><?= $c['CLI_NB_POINTS_TOT'] ?></td>
+                            <td class="ps-3"><span class="badge-rank"><?= $i + 1 ?></span></td>
+                            <td class="fw-semibold"><?= htmlspecialchars($c['CLI_NOM']) ?></td>
+                            <td><?= htmlspecialchars($c['CLI_PRENOM']) ?></td>
+                            <td><?= $c['CLI_NB_POINTS_TOT'] ?> pts</td>
                             <td><?= $c['NB_RESERVATIONS'] ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -69,23 +138,31 @@ $reservations      = ReservationsParPeriode($conn);
         </div>
 
         <!-- Lignes les plus utilisées -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header fw-semibold" style="background-color:#2c3e50; color:white;">
-                Lignes les plus utilisées
-            </div>
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="stat-card-header">Lignes les plus utilisées</div>
             <div class="card-body p-0">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
-                            <th>Ligne</th>
-                            <th>Nombre d'utilisations</th>
+                            <th class="ps-3">Ligne</th>
+                            <th>Utilisations</th>
+                            <th>Popularité</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($lignes_utilisees as $l): ?>
+                        <?php
+                        $max = !empty($lignes_utilisees) ? $lignes_utilisees[0]['NB_UTILISATIONS'] : 1;
+                        foreach ($lignes_utilisees as $l):
+                            $pct = round(($l['NB_UTILISATIONS'] / $max) * 100);
+                        ?>
                         <tr>
-                            <td>Ligne <?= trim($l['LIG_NUM']) ?></td>
+                            <td class="ps-3"><span class="badge-ligne">Ligne <?= trim($l['LIG_NUM']) ?></span></td>
                             <td><?= $l['NB_UTILISATIONS'] ?></td>
+                            <td style="width:40%">
+                                <div class="progress" style="height:8px; border-radius:99px;">
+                                    <div class="progress-bar" style="width:<?= $pct ?>%; background-color:rgb(210,10,40);"></div>
+                                </div>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -94,22 +171,20 @@ $reservations      = ReservationsParPeriode($conn);
         </div>
 
         <!-- Réservations par période -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header fw-semibold" style="background-color:#2c3e50; color:white;">
-                Réservations par période
-            </div>
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="stat-card-header">Réservations par période</div>
             <div class="card-body p-0">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-dark">
+                <table class="table table-hover mb-0">
+                    <thead>
                         <tr>
-                            <th>Période</th>
-                            <th>Nombre de réservations</th>
+                            <th class="ps-3">Période</th>
+                            <th>Réservations</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($reservations as $r): ?>
                         <tr>
-                            <td><?= $r['PERIODE'] ?></td>
+                            <td class="ps-3 fw-semibold"><?= $r['PERIODE'] ?></td>
                             <td><?= $r['NB_RESERVATIONS'] ?></td>
                         </tr>
                         <?php endforeach; ?>
