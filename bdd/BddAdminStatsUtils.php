@@ -1,20 +1,16 @@
 <?php
 require_once __DIR__ . '/BddConnexionUtils.php';
 
-
-function MeilleursCLients($conn) {
+function MeilleursClients($conn) {
     $sql = "SELECT c.cli_nom, c.cli_prenom, c.cli_nb_points_tot, COUNT(r.res_num) as nb_reservations
             FROM vik_client c
             JOIN vik_reservation r USING(cli_num)
             GROUP BY c.cli_num, c.cli_nom, c.cli_prenom, c.cli_nb_points_tot
             ORDER BY nb_reservations DESC
             FETCH FIRST 10 ROWS ONLY";
-
-            lireDonnees($conn, $sql, $tab);
-            return $tab;
+    LireDonneesPDO3($conn, $sql, $tab);
+    return $tab;
 }
-
-
 
 function LignesPlusUtilisees($conn) {
     $sql = "SELECT lig_num, COUNT(*) as nb_utilisations
@@ -24,10 +20,6 @@ function LignesPlusUtilisees($conn) {
     LireDonneesPDO3($conn, $sql, $tab);
     return $tab;
 }
-
-
-
-
 
 function ReservationsParPeriode($conn) {
     $sql = "SELECT TO_CHAR(res_date, 'MM/YYYY') as periode, COUNT(*) as nb_reservations
