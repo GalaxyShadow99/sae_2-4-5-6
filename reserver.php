@@ -1,3 +1,10 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -18,11 +25,18 @@
         $lignes = ListeLignes($conn);
         $communes = ListeCommunesLignes($conn);
 
-        function formaterTelephone(string $tel): string
-        {
+        // --- RECUPERATION DES INFOS CLIENT (Pour le pré-remplissage) ---
+        $infoClient = [];
+        if ($estConnecte) {
+            $sqlClient = "SELECT cli_nom, cli_courriel FROM vik_client WHERE cli_num = :id";
+            $stmtClient = $conn->prepare($sqlClient);
+            $stmtClient->execute(['id' => $_SESSION['user_id']]);
+            $infoClient = $stmtClient->fetch(PDO::FETCH_ASSOC) ?: [];
+        }
+
+        function formaterTelephone(string $tel): string {
             $chiffres = preg_replace('/\D/', '', $tel);
-            if (strlen($chiffres) !== 10)
-                return '';
+            if (strlen($chiffres) !== 10) return '';
             return implode('.', str_split($chiffres, 2));
         }
 
@@ -44,17 +58,14 @@
 
             $erreurs = [];
 
-            if (empty($nom))
-                $erreurs[] = 'Le nom est obligatoire.';
-            if (empty($prenom))
-                $erreurs[] = 'Le prénom est obligatoire.';
-            if (empty($telephone))
-                $erreurs[] = 'Le numéro de téléphone est invalide (10 chiffres requis).';
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL))
-                $erreurs[] = 'L\'adresse email est invalide.';
-            if (empty($numLignes))
-                $erreurs[] = 'Veuillez ajouter au moins une ligne.';
+            // 1. Vérification des champs de base
+            if (empty($nom)) $erreurs[] = 'Le nom est obligatoire.';
+            if (empty($prenom)) $erreurs[] = 'Le prénom est obligatoire.';
+            if (empty($telephone)) $erreurs[] = 'Le numéro de téléphone est invalide (10 chiffres requis).';
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $erreurs[] = 'L\'adresse email est invalide.';
+            if (empty($numLignes)) $erreurs[] = 'Veuillez ajouter au moins une ligne.';
 
+            // 2. Vérification des segments
             foreach ($numLignes as $i => $ligne) {
                 $dep = trim($comDeparts[$i] ?? '');
                 $arr = trim($comArrivees[$i] ?? '');
@@ -65,12 +76,9 @@
                 }
             }
 
-            if (!empty($erreurs)) {
-                // Échapper chaque message individuellement avant de les joindre
-                $message = implode('<br>', array_map('htmlspecialchars', $erreurs));
-                $messageType = 'danger';
-            } else {
-                $prixTotal = 0;
+            // 3. Calcul des tarifs si pas d'erreurs
+            $prixTotal = 0;
+            if (empty($erreurs)) {
                 foreach ($numLignes as $i => $ligne) {
                     $dep = trim($comDeparts[$i]);
                     $arr = trim($comArrivees[$i]);
@@ -85,11 +93,11 @@
                 }
             }
 
+            // 4. Insertion en base de données
             if (!empty($erreurs)) {
                 $message = implode('<br>', array_map('htmlspecialchars', $erreurs));
                 $messageType = 'danger';
             } else {
-
                 try {
                     $conn->beginTransaction();
                     foreach ($numLignes as $i => $ligne) {
@@ -97,9 +105,15 @@
                         $arr = trim($comArrivees[$i]);
                         $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
                         $prix = $tarifsCalcules[$i]['PRIX'] ?? null;
-                        $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
-                        if (!$ok)
-                            throw new Exception('Échec insertion segment ' . ($i + 1));
+                        
+                        // Séparation de la logique Connecté / Non connecté
+                        if($estConnecte) {
+                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix);
+                        } else {
+                            $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix);
+                        }
+                        
+                        if (!$ok) throw new Exception('Échec insertion segment ' . ($i + 1));
                     }
                     $conn->commit();
                     $prixStr = $prixTotal > 0 ? ' Prix total : <strong>' . htmlspecialchars((string) $prixTotal) . ' €</strong>' : '';
@@ -132,23 +146,23 @@
                             <div class="mb-3">
                                 <label for="nom" class="form-label">Nom *</label>
                                 <input type="text" class="form-control" id="nom" name="nom"
-                                    value="<?= htmlspecialchars($_POST['nom'] ?? '') ?>" required>
+                                    value="<?= htmlspecialchars($_POST['nom'] ?? $infoClient['CLI_NOM'] ?? '') ?>" required>
                             </div>
                             <div class="mb-3">
                                 <label for="prenom" class="form-label">Prénom *</label>
                                 <input type="text" class="form-control" id="prenom" name="prenom"
-                                    value="<?= htmlspecialchars($_POST['prenom'] ?? '') ?>" required>
+                                    value="<?= htmlspecialchars($_POST['prenom'] ?? $_SESSION['user_prenom'] ?? '') ?>" required>
                             </div>
                             <div class="mb-3">
                                 <label for="telephone" class="form-label">Téléphone *</label>
                                 <input type="text" class="form-control" id="telephone" name="telephone"
-                                    value="<?= htmlspecialchars(formaterTelephone($_POST['telephone'] ?? '')) ?>"
+                                    value="<?= htmlspecialchars($_POST['telephone'] ?? '') ?>"
                                     placeholder="0612345678" maxlength="14" required>
                             </div>
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email *</label>
                                 <input type="email" class="form-control" id="email" name="email"
-                                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                                    value="<?= htmlspecialchars($_POST['email'] ?? $infoClient['CLI_COURRIEL'] ?? '') ?>" required>
                             </div>
                         </div>
                     </div>
@@ -205,7 +219,6 @@
                                             <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
                                         </select>
                                     </div>
-                                    <!-- US6 : affichage du tarif calculé pour ce segment -->
                                     <?php if (!empty($tarifsCalcules[$si])): ?>
                                         <div class="alert alert-info py-2">
                                             Tarif estimé pour ce trajet :
@@ -217,7 +230,6 @@
                         <?php endforeach; ?>
                     </div>
 
-                    <!-- Bouton US5 : ajouter une ligne -->
                     <div class="mb-3">
                         <button type="button" class="btn btn-outline-secondary w-100" id="btn-ajouter-ligne">
                             + Ajouter une ligne
@@ -236,25 +248,17 @@
 
             function optionsUniques(arrets, codeKey, nomKey) {
                 const dejaVus = new Set();
-
                 return arrets.reduce((liste, arret) => {
                     const code = (arret[codeKey] || '').trim();
-                    if (!code || dejaVus.has(code)) {
-                        return liste;
-                    }
-
+                    if (!code || dejaVus.has(code)) return liste;
                     dejaVus.add(code);
-                    liste.push({
-                        code,
-                        label: (arret[nomKey] || code).trim(),
-                    });
+                    liste.push({ code, label: (arret[nomKey] || code).trim() });
                     return liste;
                 }, []);
             }
 
             function remplirArrets(selectLigne, selectDepart, selectArrivee, valDepart = '', valArrivee = '') {
                 const ligNum = selectLigne.value.trim();
-
                 selectDepart.innerHTML = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
                 selectArrivee.innerHTML = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
 
@@ -317,7 +321,6 @@
             }
 
             document.querySelectorAll('.segment-bloc').forEach(initBloc);
-
             let segmentCount = <?= count($postLignes) ?>;
 
             document.getElementById('btn-ajouter-ligne').addEventListener('click', function () {
@@ -328,31 +331,31 @@
                 div.className = 'card mb-3 segment-bloc';
                 div.id = 'segment-' + newIndex;
                 div.innerHTML = `
-<div class="card-header d-flex justify-content-between align-items-center">
-<span class="fw-bold">Trajet ${newIndex + 1}</span>
-<button type="button" class="btn btn-sm btn-outline-danger btn-supprimer">Supprimer</button>
-</div>
-<div class="card-body">
-<div class="mb-3">
-<label class="form-label">Ligne *</label>
-<select class="form-select select-ligne" name="Num_Ligne[]" required>
-<option value="" disabled selected>-- Choisir une ligne --</option>
-${buildLigneOptions()}
-</select>
-</div>
-<div class="mb-3">
-<label class="form-label">Arrêt de départ *</label>
-<select class="form-select select-depart" name="Com_depart[]" required>
-<option value="" disabled selected>-- Choisir d'abord une ligne --</option>
-</select>
-</div>
-<div class="mb-3">
-<label class="form-label">Arrêt d'arrivée *</label>
-<select class="form-select select-arrivee" name="Com_arrivee[]" required>
-<option value="" disabled selected>-- Choisir d'abord une ligne --</option>
-</select>
-</div>
-</div>`
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Trajet ${newIndex + 1}</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-supprimer">Supprimer</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Ligne *</label>
+                            <select class="form-select select-ligne" name="Num_Ligne[]" required>
+                                <option value="" disabled selected>-- Choisir une ligne --</option>
+                                ${buildLigneOptions()}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Arrêt de départ *</label>
+                            <select class="form-select select-depart" name="Com_depart[]" required>
+                                <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Arrêt d'arrivée *</label>
+                            <select class="form-select select-arrivee" name="Com_arrivee[]" required>
+                                <option value="" disabled selected>-- Choisir d'abord une ligne --</option>
+                            </select>
+                        </div>
+                    </div>`;
 
                 container.appendChild(div);
                 initBloc(div);
