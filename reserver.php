@@ -1,13 +1,18 @@
+<?php
+if (session_status() === PHP_SESSION_NONE){
+    session_start();
+}
+$estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 
 <?php include_once("./includes/head.php"); ?>
 <?php include_once("./bdd/BddLigneUtils.php"); ?>
-<?php if (session_status() === PHP_SESSION_NONE){
-    session_start();
-}
-$estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
-?>
+
+
 <body>
     <?php include_once("./includes/topbar.php"); ?>
 
@@ -39,12 +44,6 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 
             $erreurs = [];
 
-
-            /// si client pas connecté 
-
-            if(!$estConnecte && count($numLignes) > 1){
-                $erreurs[] = 'Vous devez être connecté à un compte fidélité pour réserver un trajet avec plusieurs lignes.';
-            }
 
             if (empty($nom))    $erreurs[] = 'Le nom est obligatoire.';
             if (empty($prenom)) $erreurs[] = 'Le prénom est obligatoire.';
