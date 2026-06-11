@@ -42,6 +42,9 @@
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-2 transition" href="reserver.php">Réserver</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3 rounded-2 transition" href="carte.php">Carte</a>
+                </li>
             </ul>
 
             <div class="d-flex align-items-center gap-2 mb-3 mb-lg-0 col-lg-6 justify-content-lg-end">
