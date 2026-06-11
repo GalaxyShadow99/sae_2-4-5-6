@@ -110,6 +110,7 @@ function GetTarifSegment($conn, $numLigne, $comDepart, $comArrivee) {
         return false;
     }
 }
+
 function trouverOuCreerClient($conn, $nom, $prenom, $email) {
     $sqlSelect = "SELECT cli_num FROM vik_client WHERE UPPER(cli_courriel) = UPPER(:email)";
     $stmtSelect = preparerRequetePDO($conn, $sqlSelect);
@@ -172,34 +173,38 @@ function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $t
     return $ok;
 }
 
-function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0) {
+function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0, $pointsUtilises = 0) {
     $res_num = getProchainResNum($conn);
 
+    // 1. Insertion de la réservation dans l'historique
     $sqlResa = "INSERT INTO vik_reservation 
                 (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
             VALUES 
-                (:cli_num, :res_num, :tar_num, SYSDATE, :points, :prix)";
+                (:cli_num, :res_num, :tar_num, SYSDATE, :points_gagnes, :prix)";
                 
     $stmtResa = preparerRequetePDO($conn, $sqlResa);
     $okResa = $stmtResa->execute([
-        'cli_num' => $cli_num,
-        'res_num' => $res_num,
-        'tar_num' => $tarNum,
-        'points'  => $pointsGagnes,
-        'prix'    => $prix ?? 0
+        'cli_num'       => $cli_num,
+        'res_num'       => $res_num,
+        'tar_num'       => $tarNum,
+        'points_gagnes' => $pointsGagnes, // On insère les points gagnés sur le ticket
+        'prix'          => $prix
     ]);
 
-    // On crédite le client uniquement s'il y a des points à donner
-    if ($okResa && $pointsGagnes > 0) {
+    // 2. Mise à jour du solde du client dans la base de données
+    if ($okResa && ($pointsGagnes > 0 || $pointsUtilises > 0)) {
+        // La cagnotte "En Cours" (EC) diminue si on utilise des points
+        // La cagnotte "Totale" (TOT) ne fait qu'augmenter pour l'historique
         $sqlUpdateClient = "UPDATE vik_client 
-                            SET cli_nb_points_ec = NVL(cli_nb_points_ec, 0) + :points,
-                                cli_nb_points_tot = NVL(cli_nb_points_tot, 0) + :points
+                            SET cli_nb_points_ec = NVL(cli_nb_points_ec, 0) + :points_gagnes - :points_utilises,
+                                cli_nb_points_tot = NVL(cli_nb_points_tot, 0) + :points_gagnes
                             WHERE cli_num = :cli_num";
                             
         $stmtUpdate = preparerRequetePDO($conn, $sqlUpdateClient);
         $stmtUpdate->execute([
-            'points'  => $pointsGagnes,
-            'cli_num' => $cli_num
+            'points_gagnes'   => $pointsGagnes,
+            'points_utilises' => $pointsUtilises,
+            'cli_num'         => $cli_num
         ]);
     }
 
