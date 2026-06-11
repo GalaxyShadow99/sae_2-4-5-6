@@ -83,10 +83,7 @@ if (isset($_SESSION['user_id'])) {
 
                     </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link px-3 rounded-2 transition" href="carte.php">Carte</a>
-                </li>
-            </ul>
+                            </ul>
 
             <div class="d-flex align-items-center gap-2 mb-3 mb-lg-0 col-lg-6 justify-content-lg-end">
                 <?php if (isset($_SESSION['user_id'])): ?>
