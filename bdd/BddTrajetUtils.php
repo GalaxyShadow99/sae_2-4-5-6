@@ -66,11 +66,12 @@ function ListeNoeuds($conn) {
 }
 
 function RecupHoraireSup($conn, $ligne, $commune, $heure) {
-  $sql = "SELECT TO_CHAR(noe_heure_passage, 'HH24:MI') AS heure_passage
-          FROM vik_noeud
-          WHERE lig_num = :ligne
-            AND com_code_insee_arret = :commune
-            AND noe_heure_passage > TO_DATE(:heure, 'HH24:MI')";
+  $sql = "select to_char(noe_heure_passage, 'HH24:MI') as heure_passage from vik_noeud
+          where trim(lig_num) = trim(:ligne) 
+            and com_code_insee_arret = :commune 
+            and to_char(noe_heure_passage, 'HH24:MI') >= :heure
+          order by to_char(noe_heure_passage, 'HH24:MI') asc
+          fetch first 1 rows only";
   $stmt = preparerRequetePDO($conn, $sql);
   $stmt->execute(['ligne' => $ligne, 'commune' => $commune, 'heure' => $heure]);
   return $stmt->fetch(PDO::FETCH_ASSOC);

@@ -12,7 +12,12 @@ $communes = [];
 $noms_villes = [];
 
 if ($conn) {
-    $stmt = $conn->query("SELECT COM_CODE_INSEE, COM_NOM FROM vik_commune ORDER BY COM_NOM ASC");
+    $sql = "SELECT DISTINCT c.COM_CODE_INSEE, c.COM_NOM 
+            FROM vik_commune c
+            JOIN vik_noeud n ON c.COM_CODE_INSEE = n.COM_CODE_INSEE_ARRET 
+                            OR c.COM_CODE_INSEE = n.COM_CODE_INSEE_SUIVANT
+            ORDER BY c.COM_NOM ASC";
+    $stmt = $conn->query($sql);
     $communes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     foreach ($communes as $c) {
@@ -34,6 +39,7 @@ function getGraphePondere($conn, $graphe) {
             $graphe[$arret][$suivant] = ["lig_num" => $items["LIG_NUM"], "distance" => $distance, "duree" => $duree];
         }
     }
+
     return $graphe;
 }
 
