@@ -54,10 +54,6 @@
                         style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
                         Déconnexion
                     </a>
-                    <a href="profil.php" class="btn text-white px-3 py-2 fw-semibold rounded-3 shadow-sm transition hover-scale" 
-                        style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
-                        Mon Compte
-                    </a>
 
                 <?php else: ?>
                     <a href="connexion.php" class="btn btn-link text-white text-decoration-none px-3 py-2 transition hover-scale"
