@@ -70,7 +70,8 @@ $trajets_pop       = TrajetsPopulaires($conn);
     <?php include_once("./includes/topbar.php"); ?>
 
     <main class="container mt-4 mb-5">
-
+        
+        <a href="admin_dashboard.php" class="btn btn-outline-secondary mb-3">← Retour au dashboard</a>
         <h2 class="fw-bold mb-1">Statistiques</h2>
         <p class="text-muted mb-4">Espace administrateur — Viking Transport</p>
 

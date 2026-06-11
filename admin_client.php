@@ -47,6 +47,7 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                         Espace Administrateur
                     </span>
                 </div>
+                <a href="admin_dashboard.php" class="btn btn-outline-secondary mb-3">← Retour au dashboard</a>
                 <h1 class="display-6 fw-bold text-dark mb-0">Gestion des Clients</h1>
             </div>
             
