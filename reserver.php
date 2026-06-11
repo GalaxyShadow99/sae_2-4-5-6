@@ -216,7 +216,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                             </div>
                             
                             <form method="post" class="mt-4">
-                                <button type="submit" name="bouton_valider" class="btn btn-success btn-lg w-100 mb-2">✔ Valider la réservation</button>
+                                <button type="submit" name="bouton_valider" class="btn btn-success btn-lg w-100 mb-2">Valider la réservation</button>
                                 <a href="reserver.php" class="btn btn-outline-secondary w-100">Modifier les informations</a>
                             </form>
                         </div>
