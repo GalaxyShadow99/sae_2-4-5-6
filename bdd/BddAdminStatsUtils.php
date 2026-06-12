@@ -39,7 +39,8 @@ function ChiffreAffairesTotal($conn) {
 function ChiffreAffairesParLigne($conn) {
     $sql = "SELECT e.lig_num, SUM(r.res_prix_tot) as ca_total
             FROM vik_reservation r
-            JOIN vik_etape e ON r.cli_num = e.cli_num AND r.res_num = e.res_num
+            JOIN (SELECT DISTINCT cli_num, res_num, lig_num FROM vik_etape) e
+              ON r.cli_num = e.cli_num AND r.res_num = e.res_num
             GROUP BY e.lig_num
             ORDER BY ca_total DESC";
     LireDonneesPDO3($conn, $sql, $tab);
