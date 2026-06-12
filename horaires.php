@@ -157,7 +157,7 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
                     <div class="card shadow-sm border border-secondary border-opacity-10 rounded-4 h-100 bg-white">
                         <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
                             <h3 class="h5 fw-bold text-uppercase text-dark">
-                                <i class="bi bi-info-circle me-2" style="color: #2c3e50;"></i>Détail de la course
+                                <i class="bi bi-info-circle me-2" style="color: #2c3e50;"></i>Détail du trajet
                             </h3>
                         </div>
                         <div class="card-body p-4">
