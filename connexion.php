@@ -62,7 +62,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="mb-4">
                     <label class="form-label small fw-semibold text-secondary text-uppercase tracking-wider">Email</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted rounded-start-3"><i class="bi bi-envelope"></i></span>
                         <input type="email" class="form-control bg-light border-start-0 rounded-end-3" name="email" required placeholder="exemple@domaine.fr">
                     </div>
                 </div>
@@ -70,7 +69,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="mb-4">
                     <label class="form-label small fw-semibold text-secondary text-uppercase tracking-wider">Mot de passe</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted rounded-start-3"><i class="bi bi-lock"></i></span>
                         <input type="password" class="form-control bg-light border-start-0 rounded-end-3" name="mot_de_passe" required placeholder="••••••••">
                     </div>
                 </div>
