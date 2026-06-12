@@ -9,11 +9,17 @@ include_once("./bdd/BddLigneUtils.php");
 <body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container pt-3 pb-5 flex-shrink-0">
+    <main class="container-fluid my-5 flex-shrink-0 px-4">
         <div class="row mb-4 text-center">
-            <div class="col">
-                <h1 class="display-5 fw-bold text-dark">Réseau Viking Transport</h1>
-                <p class="lead text-muted">Voici la liste des lignes qui composent notre réseau</p>
+            <div class="col-lg-8 mx-auto">
+                <div class="mb-3">
+					<span class="badge px-3 py-2 rounded-pill fw-semibold text-uppercase tracking-wider" 
+						  style="background-color: rgba(210, 10, 40, 0.1); color: rgb(210, 10, 40);">
+						Lignes et horaires
+					</span>
+				</div>
+                <h1 class="display-5 fw-bold text-dark mb-3">Réseau Viking Transport</h1>
+                <p class="lead text-secondary">Voici la liste des lignes qui composent notre réseau.</p>
             </div>
         </div>
 

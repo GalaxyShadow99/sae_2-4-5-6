@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($client) {
             $_SESSION['user_id']     = $client['CLI_NUM'];
             $_SESSION['user_prenom'] = $client['CLI_PRENOM'];
-            $_SESSION['login_success'] = "Bienvenue " . $client['CLI_PRENOM'] . " ! .";
+            $_SESSION['login_success'] = "Bienvenue " . $client['CLI_PRENOM'] . " !";
             header('Location: connexion.php');
             exit();
         }
@@ -31,29 +31,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-100">
+
 <?php include_once("./includes/head.php"); ?>
-<body class="bg-light">
+
+<body class="d-flex flex-column h-100 bg-light text-dark">
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container mt-5" style="max-width: 400px;">
-        <h2 class="mb-3">Connexion</h2>
+    <main class="container my-5 flex-shrink-0" style="max-width: 450px;">
+        
+        <div class="text-center mb-4">
+            <div class="mb-2">
+                <span class="badge px-3 py-2 rounded-pill fw-semibold text-uppercase tracking-wider" 
+                      style="background-color: rgba(210, 10, 40, 0.1); color: rgb(210, 10, 40);">
+                    Authentification
+                </span>
+            </div>
+            <h1 class="h3 fw-bold text-dark">Connexion</h1>
+        </div>
 
         <?php if(!empty($message_erreur)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($message_erreur) ?></div>
+            <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4" role="alert">
+                <?= htmlspecialchars($message_erreur) ?>
+            </div>
         <?php endif; ?>
 
-        <form action="connexion.php" method="POST">
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" name="email" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Mot de passe</label>
-                <input type="password" class="form-control" name="mot_de_passe" required>
-            </div>
-            <input type="submit" class="btn btn-primary w-100" value="Se connecter">
-        </form>
+        <div class="p-4 p-md-5 bg-white rounded-4 shadow-sm border border-secondary border-opacity-10">
+            <form action="connexion.php" method="POST">
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-secondary text-uppercase tracking-wider">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted rounded-start-3"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control bg-light border-start-0 rounded-end-3" name="email" required placeholder="exemple@domaine.fr">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-secondary text-uppercase tracking-wider">Mot de passe</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted rounded-start-3"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control bg-light border-start-0 rounded-end-3" name="mot_de_passe" required placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn text-white btn-lg w-100 fw-bold shadow-sm rounded-3 mt-2 hover-scale" 
+                        style="background-color: rgb(210, 10, 40); border: 1px solid rgb(210, 10, 40);">
+                    Se connecter
+                </button>
+            </form>
+            
+        </div>
+        <div class="text-center mt-4">
+            <p class="small text-secondary">Vous n'avez pas de compte ? <a href="inscription.php" class="fw-semibold decoration-none" style="color: rgb(210, 10, 40);">Créer un profil</a></p>
+        </div>
     </main>
 
     <?php include_once("./includes/footer.php"); ?>

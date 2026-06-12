@@ -11,16 +11,12 @@ require_once './bdd/BddClientUtils.php';
 $conn = OuvrirConnexionPDO($dbOracle, $db_usernameOracle, $db_passwordOracle);
 
 if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
-    header('Location: connexion.php');
+    echo popUpClientNotAdmin();
     exit();
 }
 
 $cli_num = isset($_GET['cli_num']) ? (int)$_GET['cli_num'] : null;
 
-if ($cli_num === 0) {
-    header('Location: admin_client.php');
-    exit();
-}
 
 $client = null;
 $reservations = [];

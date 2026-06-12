@@ -160,9 +160,6 @@ if (!isset($_SESSION['user_id']) || !isUserAdmin($conn, $_SESSION['user_id'])) {
                                             
                                             <td class="pe-4 text-end">
                                                 <?php if ($isAnonyme): ?>
-                                                    <a href="admin_modifier_client.php?cli_num=0" class="btn btn-sm btn-outline-secondary">
-                                                        <i class="bi bi-eye"></i> Voir ses réservations
-                                                    </a>
                                                 <?php else: ?>
                                                     <div class="btn-group btn-group-sm" role="group">
                                                         <a href="admin_modifier_client.php?cli_num=<?= $cliNum ?>" class="btn btn-outline-primary" title="Modifier les informations">
