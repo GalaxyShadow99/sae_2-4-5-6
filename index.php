@@ -24,7 +24,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
                     Réseau Viking Transport
                 </h1>
                 <p class="lead text-secondary">
-                    Votre solution de mobility urbaine à travers toute la Normandie. Planifiez vos trajets, consultez les horaires et réservez vos voyages en toute simplicité.
+                    Votre solution de mobilité urbaine à travers toute la Normandie. Planifiez vos trajets, consultez les horaires et réservez vos voyages en toute simplicité.
                 </p>
             </div>
         </div>
@@ -64,10 +64,10 @@ if (session_status() === PHP_SESSION_NONE) session_start();
                 </div>
 
                 <div class="col-md-6 col-12 order-1 order-md-2 text-center text-md-end">
-                    <img src="/assets/map.png" 
-                         alt="Illustration des lignes" 
-                         class="img-fluid rounded-3 border border-secondary border-opacity-10 shadow-sm" 
-                         style="max-height: 220px; width: 100%; object-fit: cover;">
+                    <img src="/assets/map.png"
+                         alt="Illustration des lignes"
+                         class="img-fluid rounded-3 border border-secondary border-opacity-10 shadow-sm"
+                         style="max-width: 360px; width: 100%; height: auto; object-fit: cover;">
                 </div>
             </div>
         </div>
@@ -117,7 +117,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
                     <div class="mb-4">
                         <h4 class="h6 fw-bold text-dark mb-1">
-                            <i class="bi bi-gift me-2" style="color: rgb(210, 10, 40);"></i>Cagnotte Fidélité
+                            <i class="bi bi-gift me-2" style="color: rgb(210, 10, 40);"></i>Cagnotte fidélité
                         </h4>
                         <p class="small text-secondary mb-0">Cumulez automatiquement des points à chaque kilomètre parcouru et utilisez-les pour débloquer des réductions sur vos prochains billets.</p>
                     </div>
