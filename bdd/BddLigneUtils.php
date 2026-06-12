@@ -21,9 +21,15 @@ function ListeLignes($conn){
                                 t.COM_NOM AS COM_NOM_TERM
                          FROM vik_ligne l
                          LEFT JOIN vik_commune d ON d.COM_CODE_INSEE = l.COM_CODE_INSEE_DEBU
-                         LEFT JOIN vik_commune t ON t.COM_CODE_INSEE = l.COM_CODE_INSEE_TERM
-                         ORDER BY l.LIG_NUM");
-    return $cur->fetchAll(PDO::FETCH_ASSOC);
+                         LEFT JOIN vik_commune t ON t.COM_CODE_INSEE = l.COM_CODE_INSEE_TERM");
+    
+    $lignes = $cur->fetchAll(PDO::FETCH_ASSOC);
+
+    usort($lignes, function($a, $b) {
+        return strnatcasecmp($a['LIG_NUM'], $b['LIG_NUM']);
+    });
+
+    return $lignes;
 }
 
 function ListeHorairesLigne($conn, $lig_num){
