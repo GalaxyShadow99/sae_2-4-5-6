@@ -2,12 +2,12 @@
 require_once __DIR__ . '/BddConnexionUtils.php';
 
 function MeilleursClients($conn) {
+    // CORRECTION: supprimé FETCH FIRST 10 ROWS ONLY
     $sql = "SELECT c.cli_nom, c.cli_prenom, c.cli_nb_points_tot, COUNT(r.res_num) as nb_reservations
             FROM vik_client c
             JOIN vik_reservation r ON c.cli_num = r.cli_num
             GROUP BY c.cli_num, c.cli_nom, c.cli_prenom, c.cli_nb_points_tot
-            ORDER BY nb_reservations DESC
-            FETCH FIRST 10 ROWS ONLY";
+            ORDER BY nb_reservations DESC";
     LireDonneesPDO3($conn, $sql, $tab);
     return $tab;
 }
@@ -37,9 +37,11 @@ function ChiffreAffairesTotal($conn) {
 }
 
 function ChiffreAffairesParLigne($conn) {
+    // CORRECTION: sous-requête DISTINCT pour éviter double comptage
     $sql = "SELECT e.lig_num, SUM(r.res_prix_tot) as ca_total
             FROM vik_reservation r
-            JOIN vik_etape e ON r.cli_num = e.cli_num AND r.res_num = e.res_num
+            JOIN (SELECT DISTINCT cli_num, res_num, lig_num FROM vik_etape) e
+              ON r.cli_num = e.cli_num AND r.res_num = e.res_num
             GROUP BY e.lig_num
             ORDER BY ca_total DESC";
     LireDonneesPDO3($conn, $sql, $tab);
@@ -47,10 +49,10 @@ function ChiffreAffairesParLigne($conn) {
 }
 
 function ClientsPlusDePoints($conn) {
+    // CORRECTION: supprimé FETCH FIRST 10 ROWS ONLY
     $sql = "SELECT cli_nom, cli_prenom, cli_nb_points_ec, cli_nb_points_tot
             FROM vik_client
-            ORDER BY cli_nb_points_tot DESC
-            FETCH FIRST 10 ROWS ONLY";
+            ORDER BY cli_nb_points_tot DESC";
     LireDonneesPDO3($conn, $sql, $tab);
     return $tab;
 }
@@ -66,13 +68,13 @@ function HeureDePointe($conn) {
 }
 
 function TrajetsPopulaires($conn) {
+    // CORRECTION: supprimé FETCH FIRST 10 ROWS ONLY
     $sql = "SELECT c1.com_nom as depart, c2.com_nom as arrivee, COUNT(*) as nb
             FROM vik_etape e
             JOIN vik_commune c1 ON c1.com_code_insee = e.com_code_insee_depart
             JOIN vik_commune c2 ON c2.com_code_insee = e.com_code_insee_arrivee
             GROUP BY c1.com_nom, c2.com_nom
-            ORDER BY nb DESC
-            FETCH FIRST 10 ROWS ONLY";
+            ORDER BY nb DESC";
     LireDonneesPDO3($conn, $sql, $tab);
     return $tab;
 }
