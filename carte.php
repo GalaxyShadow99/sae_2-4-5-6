@@ -844,7 +844,7 @@ $conn = null;
                 <div class="mb-2">
                     <label class="form-label">Telephone *</label>
                     <input type="text" class="form-control" id="input-tel"
-                        value="<?= htmlspecialchars($infoClient['cli_telephone'] ?? '') ?>"
+                        value="0000000000"
                         maxlength="14" required>
                 </div>
                 <div class="mb-3">
@@ -1084,16 +1084,104 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 18,
 }).addTo(map);
-
 // ================================================================
 // DESSIN DES LIGNES ET MARQUEURS D'ARRÊTS
 // ================================================================
-const lignePolylines = {};   // num_ligne -> { poly, color, isB, ligne }
-const arretMarkers   = {};   // "lat,lng" -> { marker, nom, insee, lignes:[] }
+const lignePolylines = {};
+const arretMarkers   = {};
 const lignesSelectionnees = new Set();
 
 // ------------------------------------------------------------------
-// GÉNÉRATION DU HTML TOOLTIP COMMUNE (avec liste des lignes)
+// Reconstruction de la polyline ordonnée pour une ligne
+// en chaînant les arcs COM_DEPART -> COM_ARRIVEE
+// ------------------------------------------------------------------
+function construirePolylineLigne(numLigne) {
+    const arcs = COMMUNES_BDD.filter(c => (c['LIG_NUM'] || '').trim() === numLigne);
+    if (!arcs.length) return [];
+
+    // Construire un graphe de successeurs : insee_dep -> { insee_arr, nom_arr }
+    const successeurs = {};
+    const predecesseurs = new Set();
+    arcs.forEach(a => {
+        successeurs[a['COM_CODE_INSEE_DEPART']] = {
+            insee: a['COM_CODE_INSEE_ARRIVEE'],
+            nom:   a['COM_NOM_ARRIVEE']
+        };
+        predecesseurs.add(a['COM_CODE_INSEE_ARRIVEE']);
+    });
+
+    // Le point de départ est celui qui n'est jamais une arrivée
+    let debutInsee = null;
+    for (const insee of Object.keys(successeurs)) {
+        if (!predecesseurs.has(insee)) { debutInsee = insee; break; }
+    }
+    // Fallback : utiliser le terminus de départ de la ligne depuis LIGNES_BDD
+    if (!debutInsee) {
+        const ligData = LIGNES_BDD.find(l => l.num === numLigne);
+        if (ligData) debutInsee = ligData.dep_insee;
+    }
+    if (!debutInsee) debutInsee = Object.keys(successeurs)[0];
+
+    // Chaîner dans l'ordre
+    const noeuds = [];
+    let current = debutInsee;
+    const visited = new Set();
+    while (current && !visited.has(current)) {
+        visited.add(current);
+        // Trouver le nom de ce noeud
+        const arcDep = arcs.find(a => a['COM_CODE_INSEE_DEPART'] === current);
+        const nomCurrent = arcDep
+            ? arcDep['COM_NOM_DEPART']
+            : (arcs.find(a => a['COM_CODE_INSEE_ARRIVEE'] === current) || {})['COM_NOM_ARRIVEE'] || current;
+        const coord = getCoordsByInsee(current) || getCoordsByNom(nomCurrent);
+        if (coord) noeuds.push({ insee: current, nom: nomCurrent, coord });
+        const suiv = successeurs[current];
+        if (!suiv) break;
+        current = suiv.insee;
+    }
+    // Ajouter le dernier noeud (terminus arrivée)
+    if (current && !visited.has(current)) {
+        const arcArr = arcs.find(a => a['COM_CODE_INSEE_ARRIVEE'] === current);
+        const nomLast = arcArr ? arcArr['COM_NOM_ARRIVEE'] : current;
+        const coord = getCoordsByInsee(current) || getCoordsByNom(nomLast);
+        if (coord) noeuds.push({ insee: current, nom: nomLast, coord });
+    }
+
+    return noeuds;
+}
+
+// ------------------------------------------------------------------
+// HTML tooltip au survol d'une ligne (liste des communes)
+// ------------------------------------------------------------------
+function buildTooltipLigneHtml(numLigne, noeuds) {
+    const color = getCouleurLigne(numLigne);
+    const noms = noeuds.map(n => n.nom);
+    const dep  = noms[0]  || '—';
+    const arr  = noms[noms.length - 1] || '—';
+    const intermediaires = noms.slice(1, -1);
+
+    let html = `<div style="min-width:160px;">`;
+    html += `<div style="font-weight:800;font-size:0.88rem;margin-bottom:5px;color:var(--viking-dark);">
+        <span style="display:inline-block;background:${color};color:#fff;padding:1px 8px;border-radius:10px;font-size:0.75rem;margin-right:4px;">Ligne ${numLigne}</span>
+    </div>`;
+    html += `<div style="font-size:0.8rem;font-weight:700;color:var(--viking-dark);">${dep}</div>`;
+
+    if (intermediaires.length) {
+        html += `<div style="margin:3px 0;border-left:3px solid ${color};padding-left:6px;">`;
+        intermediaires.forEach(n => {
+            html += `<div style="font-size:0.74rem;color:#555;padding:1px 0;">↓ ${n}</div>`;
+        });
+        html += `</div>`;
+    }
+
+    html += `<div style="font-size:0.8rem;font-weight:700;color:var(--viking-dark);">${arr}</div>`;
+    html += `<div style="margin-top:5px;font-size:0.7rem;color:#aaa;font-style:italic;">Cliquer pour réserver</div>`;
+    html += `</div>`;
+    return html;
+}
+
+// ------------------------------------------------------------------
+// HTML tooltip commune (toutes les lignes qui y passent)
 // ------------------------------------------------------------------
 function buildTooltipCommuneHtml(nom, lignesPassant) {
     let rows = '';
@@ -1111,7 +1199,7 @@ function buildTooltipCommuneHtml(nom, lignesPassant) {
     `;
 }
 
-// Icône arrêt terminus — taille proportionnelle au nb de lignes
+// Icône arrêt terminus
 function createArretIcon(color, nbLignes) {
     const size = nbLignes > 1 ? 16 : 12;
     const border = nbLignes > 1 ? 4 : 3;
@@ -1142,53 +1230,44 @@ function createArretIconSmall(color) {
 }
 
 // ------------------------------------------------------------------
-// Première passe : collecter toutes les couleurs de lignes
+// Première passe : construire l'index commune -> lignes
 // ------------------------------------------------------------------
 LIGNES_BDD.forEach(ligne => {
     const color = getCouleurLigne(ligne.num);
     enregistrerCommuneLigne(ligne.dep_insee, ligne.dep_nom, { num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color });
     enregistrerCommuneLigne(ligne.arr_insee, ligne.arr_nom, { num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color });
 });
-
-// Même chose pour les arrêts intermédiaires
 COMMUNES_BDD.forEach(arret => {
     const num = (arret['LIG_NUM'] || '').trim();
-    const codeArr = arret['COM_CODE_INSEE_ARRIVEE'];
-    if (!num || !codeArr) return;
+    if (!num) return;
     const color = getCouleurLigne(num);
     const ligneBase = LIGNES_BDD.find(l => l.num === num);
     if (!ligneBase) return;
-    enregistrerCommuneLigne(codeArr, arret['COM_NOM_ARRIVEE'], {
-        num,
-        dep_nom: ligneBase.dep_nom,
-        arr_nom: ligneBase.arr_nom,
-        color
-    });
-    const codeDep = arret['COM_CODE_INSEE_DEPART'];
-    if (codeDep) {
-        enregistrerCommuneLigne(codeDep, arret['COM_NOM_DEPART'], {
-            num,
-            dep_nom: ligneBase.dep_nom,
-            arr_nom: ligneBase.arr_nom,
-            color
-        });
-    }
+    const ligObj = { num, dep_nom: ligneBase.dep_nom, arr_nom: ligneBase.arr_nom, color };
+    enregistrerCommuneLigne(arret['COM_CODE_INSEE_ARRIVEE'],  arret['COM_NOM_ARRIVEE'],  ligObj);
+    enregistrerCommuneLigne(arret['COM_CODE_INSEE_DEPART'],   arret['COM_NOM_DEPART'],   ligObj);
 });
 
 // ------------------------------------------------------------------
 // Dessin des lignes et marqueurs
 // ------------------------------------------------------------------
 LIGNES_BDD.forEach((ligne) => {
-    const coordDep = getCoordsByNom(ligne.dep_nom) || getCoordsByInsee(ligne.dep_insee);
-    const coordArr = getCoordsByNom(ligne.arr_nom) || getCoordsByInsee(ligne.arr_insee);
-    if (!coordDep || !coordArr) return;
-
     const color  = getCouleurLigne(ligne.num);
     const isB    = ligne.num.endsWith('B');
 
-    // === Tracé de la ligne (avec décalage si plusieurs lignes entre deux mêmes communes) ===
-    // Pour éviter la superposition totale, on introduit un léger offset en latitude
-    const polyPoints = [[coordDep.lat, coordDep.lng], [coordArr.lat, coordArr.lng]];
+    // === Reconstruire la polyline ordonnée via tous les nœuds ===
+    const noeuds = construirePolylineLigne(ligne.num);
+
+    // Fallback si pas de nœuds intermédiaires : ligne droite terminus → terminus
+    let polyPoints;
+    if (noeuds.length >= 2) {
+        polyPoints = noeuds.map(n => [n.coord.lat, n.coord.lng]);
+    } else {
+        const coordDep = getCoordsByNom(ligne.dep_nom) || getCoordsByInsee(ligne.dep_insee);
+        const coordArr = getCoordsByNom(ligne.arr_nom) || getCoordsByInsee(ligne.arr_insee);
+        if (!coordDep || !coordArr) return;
+        polyPoints = [[coordDep.lat, coordDep.lng], [coordArr.lat, coordArr.lng]];
+    }
 
     const poly = L.polyline(polyPoints, {
         color,
@@ -1198,17 +1277,22 @@ LIGNES_BDD.forEach((ligne) => {
         className: 'ligne-polyline'
     }).addTo(map);
 
-    // Tooltip enrichi sur la ligne elle-même
+    // === Tooltip enrichi avec toutes les communes de la ligne ===
     poly.bindTooltip(
-        `<strong>Ligne ${ligne.num}</strong><br>${ligne.dep_nom} — ${ligne.arr_nom}<br>
-         <em style="font-size:0.75em;opacity:0.8">Cliquer pour ajouter au panier</em>`,
-        { sticky: true, className: 'leaflet-tooltip-viking', direction: 'top' }
+        buildTooltipLigneHtml(ligne.num, noeuds.length >= 2 ? noeuds : [
+            { nom: ligne.dep_nom }, { nom: ligne.arr_nom }
+        ]),
+        {
+            sticky: true,
+            className: 'leaflet-tooltip-routes',
+            direction: 'top',
+            offset: [0, -6]
+        }
     );
 
     poly.on('click', () => {
         ouvrirPanelLigne(ligne.num, ligne.dep_nom, ligne.arr_nom, ligne.dep_insee, ligne.arr_insee);
     });
-
     poly.on('mouseover', function() {
         this.setStyle({ weight: 7, opacity: 1 });
         this.bringToFront();
@@ -1220,39 +1304,43 @@ LIGNES_BDD.forEach((ligne) => {
 
     lignePolylines[ligne.num] = { poly, color, isB, ligne };
 
-    // === Marqueurs terminus ===
-    [
-        { coord: coordDep, nom: ligne.dep_nom, insee: ligne.dep_insee },
-        { coord: coordArr, nom: ligne.arr_nom, insee: ligne.arr_insee }
-    ].forEach(({ coord, nom, insee }) => {
+    // === Marqueurs sur CHAQUE nœud de la polyline ===
+    const tousLesNoeuds = noeuds.length >= 2 ? noeuds : [
+        { insee: ligne.dep_insee, nom: ligne.dep_nom, coord: getCoordsByInsee(ligne.dep_insee) || getCoordsByNom(ligne.dep_nom) },
+        { insee: ligne.arr_insee, nom: ligne.arr_nom, coord: getCoordsByInsee(ligne.arr_insee) || getCoordsByNom(ligne.arr_nom) },
+    ].filter(n => n.coord);
+
+    tousLesNoeuds.forEach((noeud, idx) => {
+        const { coord, nom, insee } = noeud;
+        if (!coord) return;
         const key = `${coord.lat.toFixed(4)},${coord.lng.toFixed(4)}`;
         const lignesIci = communeLignesIndex[insee] || [];
+        const isTerminus = (idx === 0 || idx === tousLesNoeuds.length - 1);
 
         if (!arretMarkers[key]) {
+            const iconColor = lignesIci.length > 1 ? '#212529' : color;
             const marker = L.marker([coord.lat, coord.lng], {
-                icon: createArretIcon(color, lignesIci.length),
-                zIndexOffset: 100,
+                icon: isTerminus
+                    ? createArretIcon(iconColor, lignesIci.length)
+                    : createArretIconSmall(color),
+                zIndexOffset: isTerminus ? 100 : 50,
             }).addTo(map);
 
-            // Tooltip riche avec toutes les lignes passant par cette commune
-            marker.bindTooltip(buildTooltipCommuneHtml(nom, lignesIci), {
+            marker.bindTooltip(buildTooltipCommuneHtml(nom, lignesIci.length ? lignesIci : [{ num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color }]), {
                 className: 'leaflet-tooltip-routes',
                 direction: 'top',
                 offset: [0, -8],
             });
-
-            marker.on('click', () => afficherInfoArret(nom, lignesIci));
-
+            marker.on('click', () => afficherInfoArret(nom, lignesIci.length ? lignesIci : [{ num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color }]));
             arretMarkers[key] = { marker, nom, lignes: [ligne.num], insee };
         } else {
-            // Mettre à jour l'icône et le tooltip si de nouvelles lignes sont connues
             if (!arretMarkers[key].lignes.includes(ligne.num)) {
                 arretMarkers[key].lignes.push(ligne.num);
                 const lignesAJour = communeLignesIndex[insee] || [];
-                // Couleur du dot = couleur de la 1ère ligne, anneau multicolore sinon fond neutre
                 const iconColor = lignesAJour.length > 1 ? '#212529' : color;
-                arretMarkers[key].marker.setIcon(createArretIcon(iconColor, lignesAJour.length));
-                // Rebind tooltip avec données enrichies
+                arretMarkers[key].marker.setIcon(
+                    isTerminus ? createArretIcon(iconColor, lignesAJour.length) : createArretIconSmall(color)
+                );
                 arretMarkers[key].marker.unbindTooltip();
                 arretMarkers[key].marker.bindTooltip(buildTooltipCommuneHtml(nom, lignesAJour), {
                     className: 'leaflet-tooltip-routes',
@@ -1262,32 +1350,9 @@ LIGNES_BDD.forEach((ligne) => {
             }
         }
     });
-
-    // === Arrêts intermédiaires ===
-    const arretsIntermediaires = COMMUNES_BDD.filter(c => (c['LIG_NUM'] || '').trim() === ligne.num);
-    arretsIntermediaires.forEach(arret => {
-        const codeArr = arret['COM_CODE_INSEE_ARRIVEE'];
-        const nomArr  = arret['COM_NOM_ARRIVEE'];
-        if (!codeArr || !nomArr) return;
-        const coord = getCoordsByInsee(codeArr) || getCoordsByNom(nomArr);
-        if (!coord) return;
-        const key = `${coord.lat.toFixed(4)},${coord.lng.toFixed(4)}`;
-        if (!arretMarkers[key]) {
-            const lignesIci = communeLignesIndex[codeArr] || [{ num: ligne.num, dep_nom: ligne.dep_nom, arr_nom: ligne.arr_nom, color }];
-            const marker = L.marker([coord.lat, coord.lng], {
-                icon: createArretIconSmall(color),
-                zIndexOffset: 50,
-            }).addTo(map);
-            marker.bindTooltip(buildTooltipCommuneHtml(nomArr, lignesIci), {
-                className: 'leaflet-tooltip-routes',
-                direction: 'top',
-                offset: [0, -6],
-            });
-            marker.on('click', () => afficherInfoArret(nomArr, lignesIci));
-            arretMarkers[key] = { marker, nom: nomArr, lignes: [ligne.num], insee: codeArr };
-        }
-    });
 });
+    // === Arrêts intermédiaires ===
+
 
 // ================================================================
 // FILTRES LIGNES (badges dans le panneau)
