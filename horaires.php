@@ -111,37 +111,69 @@ if (isset($_GET['lig_num']) && isset($_GET['ville'])) {
                 <i class="bi bi-arrow-left"></i> Retour aux arrêts
             </a>
             
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div class="card shadow-sm border-0 rounded-4 mb-4" style="background-color: #2c3e50; color: white;">
-                        <div class="card-body p-4 text-center">
-                            <span class="badge bg-light text-dark mb-2 rounded-pill px-3 py-1">Ligne <?= htmlspecialchars($lig_selectionnee) ?></span>
-                            <h2 class="fw-bold mb-0"><?= htmlspecialchars(RecupereVille($conn, $ville_selectionnee)) ?></h2>
-                        </div>
-                    </div>
+            <?php 
+                // Vérifier si l'utilisateur a cliqué sur un horaire précis pour voir le détail du parcours
+                $heure_focus = isset($_GET['focus_heure']) ? $_GET['focus_heure'] : null;
+                $details_course = [];
+                if ($heure_focus) {
+                    $details_course = ObtenirTrajetComplet($conn, $lig_selectionnee, $ville_selectionnee, $heure_focus);
+                }
+            ?>
 
-                    <div class="card shadow-sm border border-secondary border-opacity-10 rounded-4">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card shadow-sm border border-secondary border-opacity-10 rounded-4 h-100">
                         <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
                             <h3 class="h5 fw-bold text-uppercase" style="color: rgb(210, 10, 40);">
-                                <i class="bi bi-clock-history me-2"></i>Prochains départs à <?= htmlspecialchars(RecupereVille($conn, $ville_selectionnee)) ?>
+                                <i class="bi bi-clock-history me-2"></i>Horaires de passage
                             </h3>
+                            <p class="text-muted small">Cliquez sur un horaire pour afficher le détail des arrêts suivants.</p>
                         </div>
                         <div class="card-body p-4">
                             <?php if (!empty($horaires)): ?>
-                                <div class="d-flex flex-wrap gap-3">
+                                <div class="d-flex flex-wrap gap-2">
                                     <?php foreach ($horaires as $h): ?>
-                                        <div class="px-4 py-2 rounded-3 border bg-light text-dark fw-bold fs-4 shadow-sm d-flex align-items-center">
-                                            <?php 
-                                                // Formatage pour n'afficher que Heure:Minute
-                                                // Si NOE_HEURE_PASSAGE est une string, date() l'affichera proprement
-                                                echo date('H:i', strtotime($h['NOE_HEURE_PASSAGE'] ?? $h['ETA_HEURE'])); 
-                                            ?>
-                                        </div>
+                                        <?php 
+                                            $h_formate = date('H:i', strtotime($h['NOE_HEURE_PASSAGE'] ?? $h['ETA_HEURE'])); 
+                                            $est_actif = ($heure_focus === $h_formate);
+                                        ?>
+                                        <a href="horaires.php?lig_num=<?= urlencode($lig_selectionnee) ?>&ville=<?= urlencode($ville_selectionnee) ?>&focus_heure=<?= urlencode($h_formate) ?>" 
+                                           class="text-decoration-none px-3 py-2 rounded-3 border fw-bold fs-5 shadow-sm transition-all d-inline-block <?= $est_actif ? 'text-white' : 'text-dark bg-light hover-bg-light' ?>"
+                                           style="<?= $est_actif ? 'background-color: rgb(210, 10, 40); border-color: rgb(210, 10, 40);' : '' ?>">
+                                            <?= $h_formate ?>
+                                        </a>
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
                                 <div class="alert alert-warning mb-0 border-0 rounded-3">
-                                    Aucun horaire de passage disponible pour cet arrêt aujourd'hui.
+                                    Aucun horaire disponible.
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card shadow-sm border border-secondary border-opacity-10 rounded-4 h-100 bg-white">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
+                            <h3 class="h5 fw-bold text-uppercase text-dark">
+                                <i class="bi bi-info-circle me-2" style="color: #2c3e50;"></i>Détail de la course
+                            </h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <?php if ($heure_focus && !empty($details_course)): ?>
+                                <div class="bus-timeline">
+                                    <?php foreach ($details_course as $index => $etape): ?>
+                                        <div class="timeline-item d-flex justify-content-between align-items-center p-2 rounded-3 <?= $index === 0 ? 'bg-light fw-bold' : '' ?>">
+                                            <span class="fs-5 text-dark"><?= htmlspecialchars($etape['COM_NOM']) ?></span>
+                                            <span class="badge fs-6 px-3 py-2 text-dark bg-secondary bg-opacity-10 rounded-pill"><?= $etape['HEURE'] ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="d-flex flex-column align-items-center justify-content-center text-center text-muted h-100 py-5">
+                                    <i class="bi bi-cursor display-4 mb-3 opacity-50"></i>
+                                    <p class="mb-0">Sélectionnez une heure à gauche pour suivre le bus arrêt par arrêt.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
