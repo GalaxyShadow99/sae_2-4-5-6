@@ -107,7 +107,6 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 try {
                     $conn->beginTransaction();
 
-                    // Application mathématique de la réduction sur le total
                     if ($reductionTotale > 0) {
                         $prixTotal = max(0, $prixTotal - $reductionTotale);
                     }
@@ -168,7 +167,6 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $distanceTotale = 0;
                 $segmentsData = [];
 
-                // CUMUL DES DISTANCES DE TOUS LES SEGMENTS
                 if (empty($erreurs)) {
                     foreach ($numLignes as $i => $ligne) {
                         $dep = trim($comDeparts[$i]);
@@ -184,7 +182,7 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                                 'distance' => $distanceSegment
                             ];
                         } else {
-                            $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun trajet possible trouvé.';
+                            $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun trajet possible trouvé dans ce sens.';
                         }
                     }
                 }
@@ -192,7 +190,6 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $prixTotal = 0;
                 $tarNumGlobal = null;
 
-                // ON CALCULE LE PRIX UNIQUE SUR LA DISTANCE TOTALE DU TRAJET COMPLET
                 if (empty($erreurs)) {
                     $sqlTarif = "SELECT TAR_NUM_TRANCHE, TAR_PRIX AS PRIX
                                  FROM vik_tarif
@@ -406,64 +403,105 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
             <script>
                 const communes = <?= json_encode($communes) ?>;
 
-                function optionsUniques(arrets, codeKey, nomKey) {
-                    const dejaVus = new Set();
-                    return arrets.reduce((liste, arret) => {
-                        const code = (arret[codeKey] || '').trim();
-                        if (!code || dejaVus.has(code)) return liste;
-                        dejaVus.add(code);
-                        liste.push({ code, label: (arret[nomKey] || code).trim() });
-                        return liste;
-                    }, []);
-                }
-
-                function remplirArrets(selectLigne, selectDepart, selectArrivee, valDepart = '', valArrivee = '') {
-                    const ligNum = selectLigne.value.trim();
-                    selectDepart.innerHTML = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
-                    selectArrivee.innerHTML = '<option value="" disabled selected>-- Choisir un arrêt --</option>';
-
+                // 1. Fonction qui reconstruit le parcours chronologique pur d'une ligne
+                function getStopsForLine(ligNum) {
                     const arretsLigne = communes.filter(c => (c['LIG_NUM'] || '').trim() === ligNum);
-                    const departs = optionsUniques(arretsLigne, 'COM_CODE_INSEE_DEPART', 'COM_NOM_DEPART');
-                    const arrivees = optionsUniques(arretsLigne, 'COM_CODE_INSEE_ARRIVEE', 'COM_NOM_ARRIVEE');
-
-                    if (departs.length === 0 && arrivees.length === 0) {
-                        selectDepart.innerHTML = '<option value="" disabled selected>Aucun arrêt trouvé</option>';
-                        selectArrivee.innerHTML = '<option value="" disabled selected>Aucun arrêt trouvé</option>';
-                        return;
-                    }
-
-                    departs.forEach(({ code, label }) => {
-                        const option = document.createElement('option');
-                        option.value = code;
-                        option.textContent = label;
-                        if (code === valDepart) option.selected = true;
-                        selectDepart.appendChild(option);
+                    const stops = [];
+                    const dejaVus = new Set();
+                    
+                    arretsLigne.forEach(c => {
+                        const codeDep = (c['COM_CODE_INSEE_DEPART'] || '').trim();
+                        const nomDep = (c['COM_NOM_DEPART'] || codeDep).trim();
+                        if (codeDep && !dejaVus.has(codeDep)) {
+                            dejaVus.add(codeDep);
+                            stops.push({ code: codeDep, label: nomDep });
+                        }
+                        
+                        const codeArr = (c['COM_CODE_INSEE_ARRIVEE'] || '').trim();
+                        const nomArr = (c['COM_NOM_ARRIVEE'] || codeArr).trim();
+                        if (codeArr && !dejaVus.has(codeArr)) {
+                            dejaVus.add(codeArr);
+                            stops.push({ code: codeArr, label: nomArr });
+                        }
                     });
-
-                    arrivees.forEach(({ code, label }) => {
-                        const option = document.createElement('option');
-                        option.value = code;
-                        option.textContent = label;
-                        if (code === valArrivee) option.selected = true;
-                        selectArrivee.appendChild(option);
-                    });
+                    return stops;
                 }
 
-                function initBloc(bloc) {
+                // 2. Initialisation intelligente du formulaire
+                function initBloc(bloc, autoDepartCode = null) {
                     const selLigne = bloc.querySelector('.select-ligne');
                     const selDepart = bloc.querySelector('.select-depart');
                     const selArrivee = bloc.querySelector('.select-arrivee');
                     const btnSuppr = bloc.querySelector('.btn-supprimer');
 
-                    if (selLigne.value) {
-                        const savedDep = selDepart.dataset.selected || '';
-                        const savedArr = selArrivee.dataset.selected || '';
-                        remplirArrets(selLigne, selDepart, selArrivee, savedDep, savedArr);
+                    function updateDeparts() {
+                        const ligNum = selLigne.value;
+                        if (!ligNum) return;
+                        
+                        const stops = getStopsForLine(ligNum);
+                        
+                        // Garde en mémoire le choix actuel, ou utilise l'auto-complétion
+                        let currentDep = selDepart.dataset.selected || selDepart.value || autoDepartCode;
+                        
+                        selDepart.innerHTML = '<option value="" disabled selected>-- Choisir un départ --</option>';
+                        
+                        // On intègre tous les arrêts sauf le tout dernier (impossible de partir du terminus)
+                        for (let i = 0; i < stops.length - 1; i++) {
+                            const option = document.createElement('option');
+                            option.value = stops[i].code;
+                            option.textContent = stops[i].label;
+                            selDepart.appendChild(option);
+                        }
+                        
+                        // Si le départ mémorisé existe sur cette ligne, on l'applique
+                        if (currentDep && Array.from(selDepart.options).some(opt => opt.value === currentDep)) {
+                            selDepart.value = currentDep;
+                        }
+                        
+                        selDepart.dataset.selected = "";
+                        autoDepartCode = null; 
+                        
+                        updateArrivees();
                     }
 
-                    selLigne.addEventListener('change', function () {
-                        remplirArrets(this, selDepart, selArrivee);
-                    });
+                    function updateArrivees() {
+                        const ligNum = selLigne.value;
+                        const depCode = selDepart.value;
+                        
+                        if (!ligNum || !depCode) {
+                            selArrivee.innerHTML = '<option value="" disabled selected>-- Choisir d\'abord un départ --</option>';
+                            return;
+                        }
+                        
+                        const stops = getStopsForLine(ligNum);
+                        const depIndex = stops.findIndex(s => s.code === depCode);
+                        
+                        let currentArr = selArrivee.dataset.selected || selArrivee.value;
+                        selArrivee.innerHTML = '<option value="" disabled selected>-- Choisir une arrivée --</option>';
+                        
+                        // L'ASTUCE ICI : On n'affiche QUE les arrêts qui se trouvent APRÈS le départ !
+                        if (depIndex !== -1) {
+                            for (let i = depIndex + 1; i < stops.length; i++) {
+                                const option = document.createElement('option');
+                                option.value = stops[i].code;
+                                option.textContent = stops[i].label;
+                                selArrivee.appendChild(option);
+                            }
+                        }
+                        
+                        if (currentArr && Array.from(selArrivee.options).some(opt => opt.value === currentArr)) {
+                            selArrivee.value = currentArr;
+                        }
+                        
+                        selArrivee.dataset.selected = "";
+                    }
+
+                    if (selLigne.value) {
+                        updateDeparts();
+                    }
+
+                    selLigne.addEventListener('change', updateDeparts);
+                    selDepart.addEventListener('change', updateArrivees);
 
                     if (btnSuppr) {
                         btnSuppr.addEventListener('click', function () {
@@ -480,11 +518,21 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     });
                 }
 
-                document.querySelectorAll('.segment-bloc').forEach(initBloc);
+                document.querySelectorAll('.segment-bloc').forEach(bloc => initBloc(bloc));
                 let segmentCount = <?= count($postLignes) ?>;
 
+                // 3. AUTO-COMPLÉTION LORS DE L'AJOUT
                 document.getElementById('btn-ajouter-ligne').addEventListener('click', function () {
                     const container = document.getElementById('segments-container');
+                    const blocs = container.querySelectorAll('.segment-bloc');
+                    
+                    // On récupère l'arrêt d'arrivée du trajet juste au-dessus
+                    let previousArriveeCode = null;
+                    if (blocs.length > 0) {
+                        const lastArr = blocs[blocs.length - 1].querySelector('.select-arrivee').value;
+                        if (lastArr) previousArriveeCode = lastArr;
+                    }
+
                     const newIndex = segmentCount++;
 
                     const div = document.createElement('div');
@@ -518,7 +566,8 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         </div>`;
 
                     container.appendChild(div);
-                    initBloc(div);
+                    // On passe le code de l'arrivée précédente pour l'injecter au départ !
+                    initBloc(div, previousArriveeCode); 
                     renuméroterSegments();
                 });
 
