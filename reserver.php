@@ -14,8 +14,19 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 <body class="bg-light">
     <?php include_once("./includes/topbar.php"); ?>
 
-    <main class="container mt-4">
-        <h1 class="text-center">Réserver un voyage</h1>
+    <main class="container-fluid my-5 flex-shrink-0 px-4">
+        <div class="row mb-4 text-center">
+            <div class="col-lg-8 mx-auto">
+                <div class="mb-3">
+					<span class="badge px-3 py-2 rounded-pill fw-semibold text-uppercase tracking-wider" 
+						  style="background-color: rgba(210, 10, 40, 0.1); color: rgb(210, 10, 40);">
+						Billeterie
+					</span>
+				</div>
+                <h1 class="display-5 fw-bold text-dark mb-3">Réserver un voyage</h1>
+                <p class="lead text-secondary"></p>
+            </div>
+        </div>
 
         <?php
         require_once './bdd/env.php';

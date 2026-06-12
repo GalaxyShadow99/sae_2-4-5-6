@@ -29,8 +29,9 @@ if (session_status() === PHP_SESSION_NONE) session_start();
             </div>
         </div>
 
-        <div class="row g-5">
-            <div class="col-lg-7 col-12">
+        <div class="row g-4">
+            
+            <div class="col-lg-6 col-12">
                 <div class="p-4 p-md-5 bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 h-100">
                     <h2 class="fw-bold text-dark h4 mb-3 tracking-wider text-uppercase">
                         <span style="color: rgb(210, 10, 40);">|</span> Tarifs selon la distance
@@ -68,7 +69,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
                 </div>
             </div>
 
-            <div class="col-lg-5 col-12 d-flex flex-column g-4 justify-content-between">
+            <div class="col-lg-6 col-12 d-flex flex-column justify-content-between">
                 
                 <div class="p-4 bg-white rounded-4 shadow-sm border border-secondary border-opacity-10 mb-4 flex-grow-1">
                     <h2 class="fw-bold text-dark h5 mb-3 tracking-wider text-uppercase">
@@ -107,19 +108,19 @@ if (session_status() === PHP_SESSION_NONE) session_start();
                     <div class="row g-2 text-center">
                         <div class="col-4">
                             <div class="p-2 bg-light rounded-3 border border-secondary border-opacity-10">
-                                <div class="fw-bold text-dark small">10 pts</div>
+                                <div class="fw-bold text-dark small">100 pts</div>
                                 <div class="fw-bold text-danger h6 mb-0 mt-1">-1 €</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-2 bg-light rounded-3 border border-secondary border-opacity-10">
-                                <div class="fw-bold text-dark small">50 pts</div>
+                                <div class="fw-bold text-dark small">500 pts</div>
                                 <div class="fw-bold text-danger h6 mb-0 mt-1">-7 €</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-2 bg-light rounded-3 border border-secondary border-opacity-10">
-                                <div class="fw-bold text-dark small">100 pts</div>
+                                <div class="fw-bold text-dark small">1000 pts</div>
                                 <div class="fw-bold text-danger h6 mb-0 mt-1">-15 €</div>
                             </div>
                         </div>
