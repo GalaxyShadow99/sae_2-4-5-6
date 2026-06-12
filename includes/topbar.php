@@ -26,6 +26,10 @@ $pageCourante = basename($_SERVER['PHP_SELF']);
         .btn:hover {
             transform: scale(1.07);
         }
+        .topBarButton:onclick {
+            background-color: rgb(210, 10, 40);
+        }
+        
     </style>
 
     <div class="container"> 
@@ -56,10 +60,12 @@ $pageCourante = basename($_SERVER['PHP_SELF']);
                     <a class="nav-link px-3 rounded-2 transition <?= ($pageCourante === 'index.php') ? 'active' : '' ?>" 
                        <?= ($pageCourante === 'index.php') ? 'aria-current="page"' : '' ?> href="index.php">Accueil</a>
                 </li>
+                <?php if (isset($_SESSION['user_id'])): ?>
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-2 transition <?= ($pageCourante === 'trajet.php') ? 'active' : '' ?>" 
                        <?= ($pageCourante === 'trajet.php') ? 'aria-current="page"' : '' ?> href="trajet.php">Trajet</a>
                 </li>
+                <?php endif; ?>
                 <li class="nav-item">
                     <a class="nav-link px-3 rounded-2 transition <?= ($pageCourante === 'lignes.php') ? 'active' : '' ?>" 
                        <?= ($pageCourante === 'lignes.php') ? 'aria-current="page"' : '' ?> href="lignes.php">Lignes</a>
@@ -79,17 +85,17 @@ $pageCourante = basename($_SERVER['PHP_SELF']);
                     </a>
                     <ul class="dropdown-menu border-0 shadow-sm">
                         <li>
-                            <a class="dropdown-item py-2 px-3 transition <?= ($pageCourante === 'reserver.php') ? 'active' : '' ?>" href="reserver.php">
+                            <a class="dropdown-item topBarButton py-2 px-3 transition <?= ($pageCourante === 'reserver.php') ? 'active' : '' ?>" href="reserver.php">
                                 <i class="bi bi-cursor-fill me-2 opacity-75"></i>Manuellement
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item py-2 px-3 transition <?= ($pageCourante === 'carte.php') ? 'active' : '' ?>" href="carte.php">
+                            <a class="dropdown-item topBarButton py-2 px-3 transition <?= ($pageCourante === 'carte.php') ? 'active' : '' ?>" href="carte.php">
                                 <i class="bi bi-map-fill me-2 opacity-75"></i>Carte interactive
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item py-2 px-3 transition <?= ($pageCourante === 'tarifs.php') ? 'active' : '' ?>" href="tarifs.php">
+                            <a class="dropdown-item topBarButton py-2 px-3 transition <?= ($pageCourante === 'tarifs.php') ? 'active' : '' ?>" href="tarifs.php">
                                 <i class="bi bi-tag-fill me-2 opacity-75"></i>Tarifs
                             </a>
                         </li>

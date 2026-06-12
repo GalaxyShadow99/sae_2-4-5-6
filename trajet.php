@@ -326,7 +326,7 @@ if ($depart && $arrivee && $depart !== $arrivee && $conn) {
 						Recherche d'Itinéraires
 					</span>
 				</div>
-                <h1 class="display-5 fw-bold text-dark mb-3">Calculer un trajet</h1>
+                <h1 class="display-5 fw-bold text-dark mb-3">Trouvez votre trajet</h1>
                 <p class="lead text-secondary">Trouvez facilement les meilleurs chemins pour vos déplacements urbains.</p>
             </div>
         </div>
