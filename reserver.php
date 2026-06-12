@@ -68,44 +68,34 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 $tarifsCalcules = $_SESSION['tarifs_temp'];
                 $prixTotal = $_SESSION['prix_total_temp'];
 
-                // LA LIGNE QUI CORRIGE TON ERREUR ORANGE EST CELLE-CI :
-                $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
+               $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
                 
-                $pointsGagnesTotal = floor($distanceTotale / 10);
+                // RÈGLE DU SUJET : 1 point pour 10 km, MINIMUM 1 point.
+                $pointsGagnesTotal = max(1, floor($distanceTotale / 10));
 
-                // --- GESTION DE LA REDUCTION (SYSTÈME DE PALIERS) ---
                 $pointsDispos = $estConnecte ? (int)($infoClient['CLI_NB_POINTS_EC'] ?? 0) : 0;
                 $utiliserPoints = isset($_POST['utiliser_points']) && $pointsDispos >= 100;
                 
                 $pointsUtilisesTotaux = 0;
                 $reductionTotale = 0;
 
+                // RÈGLE DU SUJET : On ne peut utiliser qu'UNE SEULE des trois réductions
                 if ($utiliserPoints) {
-                    $max_reduction = floor($pointsDispos / 1000) * 15 + floor(($pointsDispos % 1000) / 500) * 7 + floor(($pointsDispos % 500) / 100) * 1;
+                    if ($pointsDispos >= 1000) {
+                        $reductionTotale = 15;
+                        $pointsUtilisesTotaux = 1000;
+                    } elseif ($pointsDispos >= 500) {
+                        $reductionTotale = 7;
+                        $pointsUtilisesTotaux = 500;
+                    } elseif ($pointsDispos >= 100) {
+                        $reductionTotale = 1;
+                        $pointsUtilisesTotaux = 100;
+                    }
                     
-                    if ($prixTotal >= $max_reduction) {
-                        $reductionTotale = $max_reduction;
-                        $pointsUtilisesTotaux = floor($pointsDispos / 100) * 100; 
-                    } else {
-                        $meilleur_points = $pointsDispos;
-                        $max_1000 = floor($pointsDispos / 1000);
-                        
-                        for ($i = 0; $i <= $max_1000; $i++) {
-                            $max_500 = floor(($pointsDispos - $i * 1000) / 500);
-                            for ($j = 0; $j <= $max_500; $j++) {
-                                $max_100 = floor(($pointsDispos - $i * 1000 - $j * 500) / 100);
-                                for ($k = 0; $k <= $max_100; $k++) {
-                                    $reduc_potentielle = $i * 15 + $j * 7 + $k * 1;
-                                    $cout_points = $i * 1000 + $j * 500 + $k * 100;
-                                    
-                                    if ($reduc_potentielle >= $prixTotal && $cout_points < $meilleur_points) {
-                                        $meilleur_points = $cout_points;
-                                    }
-                                }
-                            }
-                        }
-                        $reductionTotale = $prixTotal; 
-                        $pointsUtilisesTotaux = $meilleur_points; 
+                    // On ne peut pas réduire plus que le prix du billet
+                    if ($reductionTotale > $prixTotal) {
+                        $reductionTotale = $prixTotal;
+                        // Note : Le client "gâche" ses points s'il utilise un palier de 15€ pour un ticket à 5€, c'est la règle stricte.
                     }
                 }
 

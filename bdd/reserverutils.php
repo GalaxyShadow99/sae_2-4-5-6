@@ -169,29 +169,25 @@ function getProchainResNum($conn) {
 }
 
 function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $tarNum, $prix, $distance = 0) {
-    $cli_num = trouverOuCreerClient($conn, $nom, $prenom, $email);
-    if (!$cli_num) return false;
-
+    // RÈGLE DU SUJET : Client non inscrit = num_client 0
+    $cli_num = 0; 
     $res_num = getProchainResNum($conn);
 
-    // --- SÉCURITÉ ORACLE : On remplace le point PHP par la virgule Oracle pour les décimales ---
     $prixOracle = str_replace('.', ',', (string)round((float)$prix, 2));
     $distOracle = str_replace('.', ',', (string)round((float)$distance, 2));
 
-    // 1. Création de la réservation globale
     $sqlRes = "INSERT INTO vik_reservation 
                    (cli_num, res_num, tar_num_tranche, res_date, res_nb_points, res_prix_tot)
                VALUES 
                    (:cli_num, :res_num, :tar_num, SYSDATE, 0, :prix)";
     $stmt = preparerRequetePDO($conn, $sqlRes);
     $ok = $stmt->execute([
-        'cli_num' => (int)$cli_num,
+        'cli_num' => $cli_num,
         'res_num' => (int)$res_num,
         'tar_num' => $tarNum ? (int)$tarNum : null,
         'prix'    => $prixOracle
     ]);
 
-    // 2. Insertion du détail du trajet dans VIK_ETAPE
     if ($ok) {
         $sqlEtape = "INSERT INTO vik_etape 
                         (cli_num, res_num, lig_num, com_code_insee_depart, com_code_insee_arrivee, eta_distance, eta_heure) 
@@ -199,7 +195,7 @@ function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $t
                         (:cli_num, :res_num, :ligne, :dep, :arr, :dist, SYSDATE)";
         $stmtEtape = preparerRequetePDO($conn, $sqlEtape);
         $stmtEtape->execute([
-            'cli_num' => (int)$cli_num, 
+            'cli_num' => $cli_num, 
             'res_num' => (int)$res_num, 
             'ligne'   => $ligne, 
             'dep'     => $dep, 
@@ -210,7 +206,6 @@ function reserverSansCompte($conn, $nom, $prenom, $email, $ligne, $dep, $arr, $t
 
     return $ok;
 }
-
 function reserverAvecCompte($conn, $cli_num, $tarNum, $prix, $pointsGagnes = 0, $pointsUtilises = 0, $ligne = '', $dep = '', $arr = '', $distance = 0) {
     $res_num = getProchainResNum($conn);
 
