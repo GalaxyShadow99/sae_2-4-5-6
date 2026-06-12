@@ -51,94 +51,92 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
         // --- TRAITEMENT DU FORMULAIRE EN 2 ETAPES ---
         $message = '';
         $messageType = '';
-        $tarifsCalcules = [];
         $reservationReussie = false;
         $afficherRecap = false;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
-            // ETAPE 2 : INSERTION DANS LA BASE (Bouton Valider cliqué)
+            // ETAPE 2 : INSERTION DANS LA BASE GLOBALE (Bouton Valider cliqué)
             if (isset($_POST['bouton_valider'])) {
                 $nom = $_SESSION['resa_temp']['nom'];
                 $prenom = $_SESSION['resa_temp']['prenom'];
                 $email = $_SESSION['resa_temp']['email'];
-                $numLignes = $_SESSION['resa_temp']['Num_Ligne'];
-                $comDeparts = $_SESSION['resa_temp']['Com_depart'];
-                $comArrivees = $_SESSION['resa_temp']['Com_arrivee'];
-                $tarifsCalcules = $_SESSION['tarifs_temp'];
-                $prixTotal = $_SESSION['prix_total_temp'];
-
-               $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
+                $segmentsData = $_SESSION['resa_temp']['segments_data'];
                 
-                // RÈGLE DU SUJET : 1 point pour 10 km, MINIMUM 1 point.
-                $pointsGagnesTotal = max(1, floor($distanceTotale / 10));
+                $prixTotal = $_SESSION['prix_total_temp'];
+                $tarNumGlobal = $_SESSION['tar_num_global'];
+                $distanceTotale = $_SESSION['distance_totale_temp'] ?? 0;
+                $pointsGagnesTotal = floor($distanceTotale / 10);
 
+                // --- GESTION DE LA REDUCTION (SYSTÈME DE PALIERS) ---
                 $pointsDispos = $estConnecte ? (int)($infoClient['CLI_NB_POINTS_EC'] ?? 0) : 0;
                 $utiliserPoints = isset($_POST['utiliser_points']) && $pointsDispos >= 100;
                 
                 $pointsUtilisesTotaux = 0;
                 $reductionTotale = 0;
 
-                // RÈGLE DU SUJET : On ne peut utiliser qu'UNE SEULE des trois réductions
                 if ($utiliserPoints) {
-                    if ($pointsDispos >= 1000) {
-                        $reductionTotale = 15;
-                        $pointsUtilisesTotaux = 1000;
-                    } elseif ($pointsDispos >= 500) {
-                        $reductionTotale = 7;
-                        $pointsUtilisesTotaux = 500;
-                    } elseif ($pointsDispos >= 100) {
-                        $reductionTotale = 1;
-                        $pointsUtilisesTotaux = 100;
-                    }
+                    $max_reduction = floor($pointsDispos / 1000) * 15 + floor(($pointsDispos % 1000) / 500) * 7 + floor(($pointsDispos % 500) / 100) * 1;
                     
-                    // On ne peut pas réduire plus que le prix du billet
-                    if ($reductionTotale > $prixTotal) {
-                        $reductionTotale = $prixTotal;
-                        // Note : Le client "gâche" ses points s'il utilise un palier de 15€ pour un ticket à 5€, c'est la règle stricte.
+                    if ($prixTotal >= $max_reduction) {
+                        $reductionTotale = $max_reduction;
+                        $pointsUtilisesTotaux = floor($pointsDispos / 100) * 100; 
+                    } else {
+                        $meilleur_points = $pointsDispos;
+                        $max_1000 = floor($pointsDispos / 1000);
+                        
+                        for ($i = 0; $i <= $max_1000; $i++) {
+                            $max_500 = floor(($pointsDispos - $i * 1000) / 500);
+                            for ($j = 0; $j <= $max_500; $j++) {
+                                $max_100 = floor(($pointsDispos - $i * 1000 - $j * 500) / 100);
+                                for ($k = 0; $k <= $max_100; $k++) {
+                                    $reduc_potentielle = $i * 15 + $j * 7 + $k * 1;
+                                    $cout_points = $i * 1000 + $j * 500 + $k * 100;
+                                    
+                                    if ($reduc_potentielle >= $prixTotal && $cout_points < $meilleur_points) {
+                                        $meilleur_points = $cout_points;
+                                    }
+                                }
+                            }
+                        }
+                        $reductionTotale = $prixTotal; 
+                        $pointsUtilisesTotaux = $meilleur_points; 
                     }
                 }
 
                 try {
                     $conn->beginTransaction();
-                    foreach ($numLignes as $i => $ligne) {
-                        $dep = trim($comDeparts[$i]);
-                        $arr = trim($comArrivees[$i]);
-                        $tarNum = $tarifsCalcules[$i]['TAR_NUM_TRANCHE'] ?? null;
-                        $prix = $tarifsCalcules[$i]['PRIX'] ?? 0;
-                        
-                        // ON RÉCUPÈRE LA DISTANCE DU SEGMENT
-                        $distanceSegment = $tarifsCalcules[$i]['DISTANCE'] ?? 0;
 
-                        // Application de la réduction sur le premier segment
-                        if ($i === 0 && $reductionTotale > 0) {
-                            $prix = max(0, $prix - $reductionTotale);
-                        }
-
-                        $pointsPourCeSegment = ($i === 0) ? $pointsGagnesTotal : 0;
-                        $pointsDepensesCeSegment = ($i === 0) ? $pointsUtilisesTotaux : 0;
-                        
-                        // ON ENVOIE TOUTES LES INFOS À LA BASE DE DONNÉES !
-                        if($estConnecte) {
-                            $ok = reserverAvecCompte($conn, $_SESSION['user_id'], $tarNum, $prix, $pointsPourCeSegment, $pointsDepensesCeSegment, trim($ligne), $dep, $arr, $distanceSegment);
-                        } else {
-                            $ok = reserverSansCompte($conn, $nom, $prenom, $email, trim($ligne), $dep, $arr, $tarNum, $prix, $distanceSegment);
-                        }
-                        if (!$ok) throw new Exception('Échec insertion segment ' . ($i + 1));
+                    // Application mathématique de la réduction sur le total
+                    if ($reductionTotale > 0) {
+                        $prixTotal = max(0, $prixTotal - $reductionTotale);
                     }
+
+                    $userId = $_SESSION['user_id'] ?? null;
+                    
+                    $ok = reserverVoyageMultiSegments(
+                        $conn, $estConnecte, $userId, 
+                        $nom, $prenom, $email, 
+                        $tarNumGlobal, $prixTotal, 
+                        $pointsGagnesTotal, $pointsUtilisesTotaux, 
+                        $segmentsData
+                    );
+
+                    if (!$ok) throw new Exception("Échec de l'enregistrement de la réservation globale.");
+
                     $conn->commit();
                     $message = 'Votre réservation a bien été enregistrée !';
                     $messageType = 'success';
                     $reservationReussie = true;
-                    unset($_SESSION['resa_temp'], $_SESSION['tarifs_temp'], $_SESSION['prix_total_temp'], $_SESSION['distance_totale_temp']); 
+                    unset($_SESSION['resa_temp'], $_SESSION['prix_total_temp'], $_SESSION['tar_num_global'], $_SESSION['distance_totale_temp']); 
                 } catch (Exception $e) {
                     $conn->rollBack();
                     $message = 'Erreur : ' . $e->getMessage();
                     $messageType = 'danger';
                 }
-            }
+            } 
 
-            // ETAPE 1 : VERIFICATION DES CHAMPS (Bouton Réserver cliqué)
+            // ETAPE 1 : VERIFICATION ET CUMUL (Bouton Réserver cliqué)
             else {
                 $nom = trim($_POST['nom'] ?? '');
                 $prenom = trim($_POST['prenom'] ?? '');
@@ -167,21 +165,49 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                     }
                 }
 
-                $prixTotal = 0;
                 $distanceTotale = 0;
+                $segmentsData = [];
+
+                // CUMUL DES DISTANCES DE TOUS LES SEGMENTS
                 if (empty($erreurs)) {
                     foreach ($numLignes as $i => $ligne) {
                         $dep = trim($comDeparts[$i]);
                         $arr = trim($comArrivees[$i]);
-                        $tarif = GetTarifSegment($conn, trim($ligne), $dep, $arr);
-                        if ($tarif !== false) {
-                            $tarifsCalcules[$i] = $tarif;
-                            $prixTotal += $tarif['PRIX'];
-                            $distanceTotale += $tarif['DISTANCE'] ?? 0;
+                        $distanceSegment = CalculerDistanceSegment($conn, trim($ligne), $dep, $arr);
+                        
+                        if ($distanceSegment !== false) {
+                            $distanceTotale += $distanceSegment;
+                            $segmentsData[] = [
+                                'ligne' => trim($ligne),
+                                'dep' => $dep,
+                                'arr' => $arr,
+                                'distance' => $distanceSegment
+                            ];
                         } else {
-                            $tarifsCalcules[$i] = null;
-                            $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun tarif trouvé pour ce trajet.';
+                            $erreurs[] = 'Segment ' . ($i + 1) . ' : aucun trajet possible trouvé.';
                         }
+                    }
+                }
+
+                $prixTotal = 0;
+                $tarNumGlobal = null;
+
+                // ON CALCULE LE PRIX UNIQUE SUR LA DISTANCE TOTALE DU TRAJET COMPLET
+                if (empty($erreurs)) {
+                    $sqlTarif = "SELECT TAR_NUM_TRANCHE, TAR_PRIX AS PRIX
+                                 FROM vik_tarif
+                                 WHERE TAR_MIN_DIST <= :distance
+                                   AND TAR_MAX_DIST >= :distance
+                                 FETCH FIRST 1 ROWS ONLY";
+                    $stmtTarif = preparerRequetePDO($conn, $sqlTarif);
+                    $stmtTarif->execute(['distance' => ceil($distanceTotale)]);
+                    $tarifGlobal = $stmtTarif->fetch(PDO::FETCH_ASSOC);
+
+                    if ($tarifGlobal) {
+                        $prixTotal = $tarifGlobal['PRIX'];
+                        $tarNumGlobal = $tarifGlobal['TAR_NUM_TRANCHE'];
+                    } else {
+                        $erreurs[] = "Aucun tarif global trouvé pour la distance totale de " . ceil($distanceTotale) . " km.";
                     }
                 }
 
@@ -191,8 +217,9 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                 } else {
                     $afficherRecap = true;
                     $_SESSION['resa_temp'] = $_POST;
-                    $_SESSION['tarifs_temp'] = $tarifsCalcules;
+                    $_SESSION['resa_temp']['segments_data'] = $segmentsData;
                     $_SESSION['prix_total_temp'] = $prixTotal;
+                    $_SESSION['tar_num_global'] = $tarNumGlobal;
                     $_SESSION['distance_totale_temp'] = $distanceTotale;
                 }
             }
@@ -243,15 +270,15 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
                         
                             <hr>
                             <ul class="list-group mb-4">
-                                <?php foreach ($_SESSION['resa_temp']['Num_Ligne'] as $i => $ligne): ?>
+                                <?php foreach ($_SESSION['resa_temp']['segments_data'] as $i => $segment): ?>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
-                                            <span class="badge bg-secondary mb-1">Ligne <?= htmlspecialchars(trim($ligne)) ?></span><br>
-                                            <strong>Départ :</strong> <?= htmlspecialchars(getNomCommune(trim($_SESSION['resa_temp']['Com_depart'][$i]), $communes)) ?><br>
-                                            <strong>Arrivée :</strong> <?= htmlspecialchars(getNomCommune(trim($_SESSION['resa_temp']['Com_arrivee'][$i]), $communes)) ?>
+                                            <span class="badge bg-secondary mb-1">Ligne <?= htmlspecialchars($segment['ligne']) ?></span><br>
+                                            <strong>Départ :</strong> <?= htmlspecialchars(getNomCommune($segment['dep'], $communes)) ?><br>
+                                            <strong>Arrivée :</strong> <?= htmlspecialchars(getNomCommune($segment['arr'], $communes)) ?>
                                         </div>
-                                        <span class="fs-5 fw-bold text-primary">
-                                            <?= isset($_SESSION['tarifs_temp'][$i]['PRIX']) ? htmlspecialchars((string)$_SESSION['tarifs_temp'][$i]['PRIX']) . ' €' : 'N/A' ?>
+                                        <span class="fs-6 text-muted font-monospace">
+                                            <?= round($segment['distance'], 1) ?> km
                                         </span>
                                     </li>
                                 <?php endforeach; ?>
@@ -543,7 +570,6 @@ $estConnecte = isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
     <?php include_once("./includes/jsIncludes.php"); ?>
 
     <?php
-    // Fermeture de la connexion BDD
     if (isset($conn)) {
         $conn = null;
     }
