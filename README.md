@@ -1,7 +1,9 @@
-# Viking Transport — Application de Gestion et Réservation de Mobilité Urbaine
+# Viking Transport - Application de Gestion d'un réseau de transport en commun
 
 Ce projet a été réalisé dans le cadre de la première année de BUT Informatique (IUT) à l'Université de Caen. Développé en équipe, l'objectif était de concevoir une application web dynamique complète pour pourvoir gérer tout un réseau de transport normand fictif. 
 
+Dans ce projet j'ai surtout joué un rôle de 'chef de projet', dans le sens où je répartissait les tâches à venir et m'assurait que tout le monde arrive à travailler dans de bonnes conditions ! J'ai aussi rapidement été désigné comme 'chef du depôt GIT', j'ai donc apprit à gérer des _merge conflicts_ et autres réjouissances d'un outil aussi puissant que GIT
+Enfin j'ai également assuré avec Nathan la présentation et la démo technique devant un amphi regroupant tous les memebres de ma promo ainsi que les jury pour notre évaluation.
 ---
 
 ## Fonctionnalités Implémentées
