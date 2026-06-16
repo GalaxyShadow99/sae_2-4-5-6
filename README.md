@@ -2,8 +2,8 @@
 
 Ce projet a été réalisé dans le cadre de la première année de BUT Informatique (IUT) à l'Université de Caen. Développé en équipe, l'objectif était de concevoir une application web dynamique complète pour pourvoir gérer tout un réseau de transport normand fictif. 
 
-Dans ce projet j'ai surtout joué un rôle de 'chef de projet', dans le sens où je répartissait les tâches à venir et m'assurait que tout le monde arrive à travailler dans de bonnes conditions ! J'ai aussi rapidement été désigné comme 'chef du depôt GIT', j'ai donc apprit à gérer des _merge conflicts_ et autres réjouissances d'un outil aussi puissant que GIT
-Enfin j'ai également assuré avec Nathan la présentation et la démo technique devant un amphi regroupant tous les memebres de ma promo ainsi que les jury pour notre évaluation.
+> Dans ce projet j'ai surtout joué un rôle de 'chef de projet', dans le sens où je répartissait les tâches à venir et m'assurait que tout le monde arrive à travailler dans de bonnes conditions ! > J'ai aussi rapidement été désigné comme 'chef du depôt GIT', j'ai donc apprit à gérer des _merge conflicts_ et autres réjouissances d'un outil aussi puissant que GIT
+> Enfin j'ai également assuré avec Nathan la présentation et la démo technique devant un amphi regroupant tous les memebres de ma promo ainsi que les jury pour notre évaluation.
 ---
 
 ## Fonctionnalités Implémentées
@@ -61,7 +61,7 @@ Je n'aurais jamais pu écire cette application entière seule évidemment, un gr
 * **CHUQUET Anaël** — Architecte Logiciel & Intégration Front-end
 * **COLLET Léo** — Designer d'interface (UI)
 * **CONSTANTIN Thomas** — Architecte Global & Développement Back-end
-> Aussi 'chef de projet' et chef de la gestion de git et des merge comflicts :D
+> Aussi 'chef de projet' et chef de la gestion de git et des merge conflicts :D
 * **GRENECHE Mathéo** — Maquettage & Intégration Front-end
 * **GUILBERT Joan** — Développeur PHP & Élaboration des Requêtes SQL Complexes
 * **PRENVEILLE Noé** — Carte interactive & Base de Données
